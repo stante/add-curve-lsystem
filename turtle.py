@@ -1,4 +1,5 @@
 import bpy
+from copy import copy
 from mathutils import Matrix
 from math import radians
 from bpy.props import StringProperty
@@ -14,9 +15,9 @@ class TurtleOperator(bpy.types.Operator):
                              default='F[+F]F[-F]F')
 
     iterations = IntProperty(name="Iterations",
-                             min=1,
+                             min=0,
                              max=16,
-                             default=1,
+                             default=0,
                              description="Iterations - number of rule applications")
     
     yaw_angle = FloatProperty(name="+,-", 
@@ -48,8 +49,10 @@ class TurtleOperator(bpy.types.Operator):
 
     def apply_turtle(self):
         trans = Movement(bpy.context.object.matrix_basis)
+        stack = []
+        system = self.recursive_apply(self.iterations)
 
-        for symbol in self.lsystem:
+        for symbol in system:
             if (symbol == 'F'):
                 bpy.ops.object.duplicate()
                 bpy.context.object.matrix_basis = trans.get_matrix()
@@ -79,6 +82,24 @@ class TurtleOperator(bpy.types.Operator):
             if (symbol == '/'):
                 trans.roll(-self.roll_angle)
                 continue
+
+            if (symbol == '['):
+                stack.append(copy(trans))
+                print("Push", trans)
+                continue
+
+            if (symbol == ']'):
+                trans = stack.pop()
+                print("Pop:", trans)
+                continue
+
+    def recursive_apply(self, times):
+        newstring = self.lsystem
+
+        for i in range(times):
+            newstring = newstring.replace('F', self.lsystem)
+
+        return newstring
 
 def register():
     bpy.utils.register_class(TurtleOperator)  
