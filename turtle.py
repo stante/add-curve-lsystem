@@ -1,20 +1,17 @@
 import bpy
 import mathutils
+from math import radians
 from bpy.props import StringProperty
 from bpy.props import IntProperty
 from bpy.props import FloatProperty
-
-yaw_value = 0.1
-pitch_value = 0.1
-roll_value = 0.1
-operations = []
 
 class TurtleOperator(bpy.types.Operator):
     """Construct turtle based on active object"""
     bl_idname = "object.turtle_operator"
     bl_label = "Construct turtle operator"
 
-    lsystem = StringProperty(name='L-System')
+    lsystem = StringProperty(name='L-System',
+                             default='F[+F]F[-F]F')
 
     iterations = IntProperty(name="Iterations",
                              min=1,
@@ -25,24 +22,24 @@ class TurtleOperator(bpy.types.Operator):
     yaw_angle = FloatProperty(name="+,-", 
                               subtype="ANGLE",
                               unit='ROTATION',
-                              default=0.2)
+                              default=radians(60))
 
     pitch_angle = FloatProperty(name='^,&',
                                 subtype='ANGLE',
                                 unit='ROTATION',
-                                default=0.2)
+                                default=radians(60))
 
     roll_angle = FloatProperty(name='/,\\',
                                subtype='ANGLE',
                                unit='ROTATION',
-                               default=0.2)
+                               default=radians(60))
     
     @classmethod
     def poll(cls, context):
         return bpy.context.object is not None
     
     def execute(self, context):
-        apply_turtle("F+FF")
+        apply_turtle(self.lsystbbem)
         return {'FINISHED'}
 
     def invoke(self, context, event):
