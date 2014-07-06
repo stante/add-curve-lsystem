@@ -1,5 +1,5 @@
 import bpy
-import mathutils
+from mathutils import Matrix
 from math import radians
 from bpy.props import StringProperty
 from bpy.props import IntProperty
@@ -33,73 +33,75 @@ class TurtleOperator(bpy.types.Operator):
                                subtype='ANGLE',
                                unit='ROTATION',
                                default=radians(60))
-    
+
     @classmethod
     def poll(cls, context):
         return bpy.context.object is not None
     
     def execute(self, context):
-        apply_turtle(self.lsystbbem)
+        self.apply_turtle()
         return {'FINISHED'}
 
     def invoke(self, context, event):
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
 
+    def apply_turtle(self):
+        trans = Movement(bpy.context.object.matrix_basis)
+
+        for symbol in self.lsystem:
+            if (symbol == 'F'):
+                bpy.ops.object.duplicate()
+                bpy.context.object.matrix_basis = trans.get_matrix()
+                trans.move(bpy.context.object.dimensions.z)
+                continue
+
+            if (symbol == '+'):
+                trans.yaw(self.yaw_angle)
+                continue
+                
+            if (symbol == '-'):
+                trans.yaw(-self.yaw_angle)
+                continue
+                
+            if (symbol == '^'):
+                trans.pitch(self.pitch_angle)
+                continue
+
+            if (symbol == '&'):
+                trans.pitch(-self.pitch_angle)
+                continue
+
+            if (symbol == '\\'):
+                trans.roll(self.roll_angle)
+                continue
+
+            if (symbol == '/'):
+                trans.roll(-self.roll_angle)
+                continue
+
 def register():
     bpy.utils.register_class(TurtleOperator)  
 
-def apply_turtle(lsystem):
-    for symbol in lsystem:
-        if (symbol == 'F'):
-            for op in operations:
-                op()
-            operations.clear()
-            operations.append(move)
-            bpy.ops.object.duplicate()
-            continue
-        if (symbol == '+'):
-            operations.append(yaw_up)
-            continue
-        if (symbol == '-'):
-            operations.append(yaw_down)
-            continue
-        if (symbol == '^'):
-            operations.append(pitch_up)
-            continue
-        if (symbol == '&'):
-            operations.append(pitch_down)
-            continue
-        if (symbol == '\\'):
-            operations.append(roll_up)
-            continue
-        if (symbol == '/'):
-            operations.append(roll_down)
-            continue
+class Movement:
+    def __init__(self, matrix):
+        self._matrix = matrix
 
+    def move(self, distance):
+        self._matrix = self._matrix * Matrix.Translation((0, 0, distance))
 
-       
-def move():
-    bpy.ops.transform.translate(value=(0, 0, bpy.context.active_object.dimensions.z))
-    
-def yaw_up():
-    bpy.ops.transform.rotate(value=yaw_value, axis=(1, 0,0 ), constraint_orientation='LOCAL')
-    
-def yaw_down():
-    bpy.ops.transform.rotate(value=-yaw_value, axis=(1, 0, 0), constraint_orientation='LOCAL')
-    
-def pitch_up():
-    bpy.ops.transform.rotate(value=pitch_value, axis=(0, 1, 0), constraint_orientation='LOCAL')
+    def yaw(self, amount):
+        self._matrix = self._matrix * Matrix.Rotation(amount, 4, 'X')
 
-def pitch_down():
-    bpy.ops.transform.rotate(value=-pitch_value, axis=(0, 1, 0), constraint_orientation='LOCAL')
-    
-def roll_up():
-    bpy.ops.transform.rotate(value=roll_value, axis=(0, 0, 1), constraint_orientation='LOCAL')
-    
-def roll_down():
-    bpy.ops.transform.rotate(value=-roll_value, axis=(0, 0, 1), constraint_orientation='LOCAL')
-    
+    def pitch(self, amount):
+        self._matrix = self._matrix * Matrix.Rotation(amount, 4, 'Y')
+
+    def roll(self, amount):
+        self._matrix = self._matrix * Matrix.Rotaiton(amount, 4, 'Z')
+
+    def get_matrix(self):
+        return self._matrix
+
 
 if __name__ == '__main__':
     register()
