@@ -38,13 +38,14 @@ class TurtleOperator(bpy.types.Operator):
     """Construct turtle based on active object"""
     bl_idname = "object.turtle_operator"
     bl_label = "Construct turtle operator"
-
+    bl_options = {'REGISTER', 'UNDO'}
+    
     lsystem = StringProperty(name='L-System',
                              default='F[+F]F[-F]F')
 
     iterations = IntProperty(name="Iterations",
                              min=0,
-                             max=16,
+                             max=8,
                              default=0,
                              description="Iterations - number of rule applications")
     
@@ -73,8 +74,9 @@ class TurtleOperator(bpy.types.Operator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        wm = context.window_manager
-        return wm.invoke_props_dialog(self)
+        #wm = context.window_manager
+        #return wm.invoke_props_dialog(self)
+        return self.execute(context)
 
     def apply_turtle(self):
         direction = Vector((0, 0, 1))
@@ -159,7 +161,7 @@ def menu_func(self, context):
     self.layout.operator(TurtleOperator.bl_idname, text="L-system", icon='PLUGIN')
 
 def register():
-    bpy.utils.register_class(TurtleOperator)
+    bpy.utils.register_module(__name__)
     bpy.types.INFO_MT_curve_add.append(menu_func)
 
 class Movement:
