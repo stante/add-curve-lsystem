@@ -158,25 +158,6 @@ def move_forward(spline, direction, scale):
 def register():
     bpy.utils.register_class(TurtleOperator)  
 
-# class Movement:
-#     def __init__(self, matrix):
-#         self._matrix = matrix
-
-#     def move(self, distance):
-#         self._matrix = self._matrix * Matrix.Translation((0, 0, distance))
-
-#     def yaw(self, amount):
-#         self._matrix = self._matrix * Matrix.Rotation(amount, 4, 'X')
-
-#     def pitch(self, amount):
-#         self._matrix = self._matrix * Matrix.Rotation(amount, 4, 'Y')
-
-#     def roll(self, amount):
-#         self._matrix = self._matrix * Matrix.Rotation(amount, 4, 'Z')
-
-#     def get_matrix(self):
-#         return self._matrix
-
 class Movement:
     def __init__(self, vector):
         self._vector = vector
