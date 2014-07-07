@@ -30,7 +30,7 @@ bl_info = {
     "version"  : (0, 1, 0),
     "blender"  : (2, 70, 0),
     "location" : "View3D > Add > Curve",
-    "category" : "Add Curve"
+    "category" : "Add Curve",
     "warning"  : "Under development"
 }
 
