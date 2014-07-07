@@ -31,6 +31,7 @@ bl_info = {
     "blender"  : (2, 70, 0),
     "location" : "View3D > Add > Curve",
     "category" : "Add Curve"
+    "warning"  : "Under development"
 }
 
 class TurtleOperator(bpy.types.Operator):
