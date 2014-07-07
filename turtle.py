@@ -53,7 +53,6 @@ class TurtleOperator(bpy.types.Operator):
         trans = Movement(direction)
         stack = []
         system = self.recursive_apply(self.iterations)
-        print(system)
 
         # Create new curve object
         curve = bpy.data.curves.new('LSystem', 'CURVE')
@@ -94,11 +93,17 @@ class TurtleOperator(bpy.types.Operator):
                 continue
 
             if (symbol == '['):
-                stack.append(copy(trans))
+                oldpoint = spline.bezier_points[-1]
+
+                stack.append((spline, copy(trans)))
+                curve.splines.new('BEZIER')
+                spline = curve.splines[-1]
+
+                spline.bezier_points[-1].co = oldpoint.co
                 continue
 
             if (symbol == ']'):
-                trans = stack.pop()
+                spline, trans = stack.pop()
                 continue
 
     def recursive_apply(self, times):
