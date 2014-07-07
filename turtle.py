@@ -1,6 +1,6 @@
 import bpy
 from copy import copy
-from mathutils import Matrix
+from mathutils import *
 from math import radians
 from bpy.props import StringProperty
 from bpy.props import IntProperty
@@ -37,6 +37,7 @@ class TurtleOperator(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
+        return True
         return bpy.context.object is not None
     
     def execute(self, context):
@@ -48,16 +49,24 @@ class TurtleOperator(bpy.types.Operator):
         return wm.invoke_props_dialog(self)
 
     def apply_turtle(self):
-        trans = Movement(bpy.context.object.matrix_basis)
+        direction = Vector((0, 0, 1))
+        trans = Movement(direction)
         stack = []
         system = self.recursive_apply(self.iterations)
         print(system)
 
+        # Create new curve object
+        curve = bpy.data.curves.new('LSystem', 'CURVE')
+        curve.dimensions = '3D'
+        curve.fill_mode = 'FULL'
+        obj = bpy.data.objects.new('LSystem', curve)
+        bpy.context.scene.objects.link(obj)
+        curve.splines.new('BEZIER')
+        spline = curve.splines[-1]
+
         for symbol in system:
             if (symbol == 'F'):
-                bpy.ops.object.duplicate(linked=True)
-                bpy.context.object.matrix_basis = trans.get_matrix()
-                trans.move(bpy.context.object.dimensions.z)
+                move_forward(spline, trans.get_vector())
                 continue
 
             if (symbol == '+'):
@@ -100,28 +109,58 @@ class TurtleOperator(bpy.types.Operator):
 
         return newstring
 
+def move_forward(spline, direction):
+    spline.bezier_points.add()
+    newpoint = spline.bezier_points[-1]
+    oldpoint = spline.bezier_points[-2]
+
+    newpoint.co = oldpoint.co + (direction * 3)
+
+    oldpoint.handle_right = oldpoint.co + direction
+    newpoint.handle_left = newpoint.co - direction
+    newpoint.handle_right = newpoint.co + direction
+    
+        
 def register():
     bpy.utils.register_class(TurtleOperator)  
 
-class Movement:
-    def __init__(self, matrix):
-        self._matrix = matrix
+# class Movement:
+#     def __init__(self, matrix):
+#         self._matrix = matrix
 
-    def move(self, distance):
-        self._matrix = self._matrix * Matrix.Translation((0, 0, distance))
+#     def move(self, distance):
+#         self._matrix = self._matrix * Matrix.Translation((0, 0, distance))
+
+#     def yaw(self, amount):
+#         self._matrix = self._matrix * Matrix.Rotation(amount, 4, 'X')
+
+#     def pitch(self, amount):
+#         self._matrix = self._matrix * Matrix.Rotation(amount, 4, 'Y')
+
+#     def roll(self, amount):
+#         self._matrix = self._matrix * Matrix.Rotation(amount, 4, 'Z')
+
+#     def get_matrix(self):
+#         return self._matrix
+
+class Movement:
+    def __init__(self, vector):
+        self._vector = vector
+
+    def rotate(self, amount, axis):
+        self._vector = self._vector * Matrix.Rotation(amount, 3, axis)
 
     def yaw(self, amount):
-        self._matrix = self._matrix * Matrix.Rotation(amount, 4, 'X')
+        self.rotate(amount, 'X')
 
     def pitch(self, amount):
-        self._matrix = self._matrix * Matrix.Rotation(amount, 4, 'Y')
+        self.rotate(amount, 'Y')
 
     def roll(self, amount):
-        self._matrix = self._matrix * Matrix.Rotation(amount, 4, 'Z')
+        self.rotate(amount, 'Z')
 
-    def get_matrix(self):
-        return self._matrix
-
+    def get_vector(self):
+        return self._vector
 
 if __name__ == '__main__':
     register()
