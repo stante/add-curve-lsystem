@@ -155,8 +155,12 @@ def move_forward(spline, direction, scale):
     newpoint.handle_right = newpoint.co + direction
     
         
+def menu_func(self, context):
+    self.layout.operator(TurtleOperator.bl_idname, text="L-system", icon='PLUGIN')
+
 def register():
-    bpy.utils.register_class(TurtleOperator)  
+    bpy.utils.register_class(TurtleOperator)
+    bpy.types.INFO_MT_curve_add.append(menu_func)
 
 class Movement:
     def __init__(self, vector):
