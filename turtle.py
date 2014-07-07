@@ -1,3 +1,21 @@
+# ##### BEGIN GPL LICENSE BLOCK #####
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+# ##### END GPL LICENSE BLOCK #####
+
 import bpy
 from copy import copy
 from mathutils import *
@@ -5,6 +23,15 @@ from math import radians
 from bpy.props import StringProperty
 from bpy.props import IntProperty
 from bpy.props import FloatProperty
+
+bl_info = {
+    "name"     : "Lindenmayer system",
+    "author"   : "Alexander Stante",
+    "version"  : (0, 1, 0),
+    "blender"  : (2, 70, 0),
+    "location" : "View3D > Add > Curve",
+    "category" : "Add Curve"
+}
 
 class TurtleOperator(bpy.types.Operator):
     """Construct turtle based on active object"""
@@ -52,6 +79,7 @@ class TurtleOperator(bpy.types.Operator):
         direction = Vector((0, 0, 1))
         trans = Movement(direction)
         stack = []
+        occ = self.lsystem.count('F')
         system = self.recursive_apply(self.iterations)
 
         # Create new curve object
@@ -65,7 +93,7 @@ class TurtleOperator(bpy.types.Operator):
 
         for symbol in system:
             if (symbol == 'F'):
-                move_forward(spline, trans.get_vector())
+                move_forward(spline, trans.get_vector(), 1.0)
                 continue
 
             if (symbol == '+'):
@@ -114,12 +142,12 @@ class TurtleOperator(bpy.types.Operator):
 
         return newstring
 
-def move_forward(spline, direction):
+def move_forward(spline, direction, scale):
     spline.bezier_points.add()
     newpoint = spline.bezier_points[-1]
     oldpoint = spline.bezier_points[-2]
 
-    newpoint.co = oldpoint.co + (direction * 3)
+    newpoint.co = oldpoint.co + (direction * 3 * scale)
 
     oldpoint.handle_right = oldpoint.co + direction
     newpoint.handle_left = newpoint.co - direction
