@@ -51,10 +51,11 @@ class TurtleOperator(bpy.types.Operator):
         trans = Movement(bpy.context.object.matrix_basis)
         stack = []
         system = self.recursive_apply(self.iterations)
+        print(system)
 
         for symbol in system:
             if (symbol == 'F'):
-                bpy.ops.object.duplicate()
+                bpy.ops.object.duplicate(linked=True)
                 bpy.context.object.matrix_basis = trans.get_matrix()
                 trans.move(bpy.context.object.dimensions.z)
                 continue
@@ -85,12 +86,10 @@ class TurtleOperator(bpy.types.Operator):
 
             if (symbol == '['):
                 stack.append(copy(trans))
-                print("Push", trans)
                 continue
 
             if (symbol == ']'):
                 trans = stack.pop()
-                print("Pop:", trans)
                 continue
 
     def recursive_apply(self, times):
@@ -118,7 +117,7 @@ class Movement:
         self._matrix = self._matrix * Matrix.Rotation(amount, 4, 'Y')
 
     def roll(self, amount):
-        self._matrix = self._matrix * Matrix.Rotaiton(amount, 4, 'Z')
+        self._matrix = self._matrix * Matrix.Rotation(amount, 4, 'Z')
 
     def get_matrix(self):
         return self._matrix
