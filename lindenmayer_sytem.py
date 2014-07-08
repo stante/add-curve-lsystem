@@ -34,10 +34,10 @@ bl_info = {
     "warning"  : "Under development"
 }
 
-class TurtleOperator(bpy.types.Operator):
+class LindenmayerSystem(bpy.types.Operator):
     """Construct turtle based on active object"""
-    bl_idname = "object.turtle_operator"
-    bl_label = "Construct turtle operator"
+    bl_idname = "object.lindenmayer_system"
+    bl_label = "Create L-system"
     bl_options = {'REGISTER', 'UNDO'}
     
     lsystem = StringProperty(name='L-System',
@@ -158,7 +158,7 @@ def move_forward(spline, direction, scale):
     
         
 def menu_func(self, context):
-    self.layout.operator(TurtleOperator.bl_idname, text="L-system", icon='PLUGIN')
+    self.layout.operator(LindenmayerSystem.bl_idname, text="L-system", icon='PLUGIN')
 
 def register():
     bpy.utils.register_module(__name__)
