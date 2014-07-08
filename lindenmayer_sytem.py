@@ -68,7 +68,7 @@ class LindenmayerSystem(bpy.types.Operator):
     def poll(cls, context):
         return True
         return bpy.context.object is not None
-    
+        
     def execute(self, context):
         self.apply_turtle()
         return {'FINISHED'}
@@ -163,6 +163,10 @@ def menu_func(self, context):
 def register():
     bpy.utils.register_module(__name__)
     bpy.types.INFO_MT_curve_add.append(menu_func)
+
+def unregister():
+    bpy.utils.unregister_module(__name__)
+    bpy.types.INFO_MT_curve_add.remove(menu_func)
 
 class Movement:
     def __init__(self, vector):
