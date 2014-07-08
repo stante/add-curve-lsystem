@@ -38,7 +38,7 @@ class LindenmayerSystem(bpy.types.Operator):
     """Construct turtle based on active object"""
     bl_idname = "object.lindenmayer_system"
     bl_label = "Create L-system"
-    bl_options = {'REGISTER', 'UNDO'}
+    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
     
     lsystem = StringProperty(name='L-System',
                              default='F[+F]F[-F]F')
