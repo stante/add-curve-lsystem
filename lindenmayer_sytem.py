@@ -49,20 +49,10 @@ class LindenmayerSystem(bpy.types.Operator):
                              default=0,
                              description="Iterations - number of rule applications")
     
-    yaw_angle = FloatProperty(name="+,-", 
+    angle = FloatProperty(name="Angle", 
                               subtype="ANGLE",
                               unit='ROTATION',
                               default=radians(60))
-
-    pitch_angle = FloatProperty(name='^,&',
-                                subtype='ANGLE',
-                                unit='ROTATION',
-                                default=radians(60))
-
-    roll_angle = FloatProperty(name='/,\\',
-                               subtype='ANGLE',
-                               unit='ROTATION',
-                               default=radians(60))
 
     @classmethod
     def poll(cls, context):
@@ -77,6 +67,14 @@ class LindenmayerSystem(bpy.types.Operator):
         #wm = context.window_manager
         #return wm.invoke_props_dialog(self)
         return self.execute(context)
+
+    def draw(self, context):
+        layout = self.layout
+        column = layout.column()
+        column.label("Rules:")
+        column.prop(self, "lsystem")
+        column.prop(self, "iterations")
+        column.prop(self, "angle")
 
     def apply_turtle(self):
         direction = Vector((0, 0, 1))
@@ -100,27 +98,27 @@ class LindenmayerSystem(bpy.types.Operator):
                 continue
 
             if (symbol == '+'):
-                trans.yaw(self.yaw_angle)
+                trans.yaw(self.angle)
                 continue
                 
             if (symbol == '-'):
-                trans.yaw(-self.yaw_angle)
+                trans.yaw(-self.angle)
                 continue
                 
             if (symbol == '^'):
-                trans.pitch(self.pitch_angle)
+                trans.pitch(self.angle)
                 continue
 
             if (symbol == '&'):
-                trans.pitch(-self.pitch_angle)
+                trans.pitch(-self.angle)
                 continue
 
             if (symbol == '\\'):
-                trans.roll(self.roll_angle)
+                trans.roll(self.angle)
                 continue
 
             if (symbol == '/'):
-                trans.roll(-self.roll_angle)
+                trans.roll(-self.angle)
                 continue
 
             if (symbol == '['):
