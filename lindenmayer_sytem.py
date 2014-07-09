@@ -98,7 +98,7 @@ class LindenmayerSystem(bpy.types.Operator):
         direction = Vector((0, 0, 1))
         trans = Movement(direction)
         stack = []
-        occ = self.lsystem.count('F')
+        occ = count(self.lsystem, 'F')
         system = self.recursive_apply(self.iterations)
 
         # Create new curve object
@@ -115,7 +115,7 @@ class LindenmayerSystem(bpy.types.Operator):
 
         for symbol in system:
             if (symbol == 'F'):
-                grow(spline, trans.get_vector(), 1.0)
+                grow(spline, trans.get_vector(), 1.0 / (occ ** self.iterations))
                 continue
 
             if (symbol == '+'):
@@ -160,6 +160,23 @@ class LindenmayerSystem(bpy.types.Operator):
 
         return newstring
 
+def count(string, character):
+    cnt = 0
+    stack = []
+
+    for c in string:
+        if c == character and not stack:
+            cnt+=1
+            continue
+
+        if c == '[':
+            stack.append('[')
+
+        if c == ']':
+            stack.pop()
+
+    return cnt
+        
 def grow(spline, direction, scale):
     newpoint = spline.bezier_points[-1]
     oldpoint = spline.bezier_points[-2]
