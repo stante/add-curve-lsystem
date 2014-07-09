@@ -180,13 +180,14 @@ def count(string, character):
 def grow(spline, direction, scale):
     newpoint = spline.bezier_points[-1]
     oldpoint = spline.bezier_points[-2]
+    prop_direction = direction * scale
 
-    newpoint.co = newpoint.co + (direction * 3 * scale)
+    newpoint.co = newpoint.co + (prop_direction * 3)
 
-    oldpoint.handle_left = oldpoint.co - direction
-    oldpoint.handle_right = oldpoint.co + direction
-    newpoint.handle_left = newpoint.co - direction
-    newpoint.handle_right = newpoint.co + direction
+    oldpoint.handle_left = oldpoint.co - prop_direction
+    oldpoint.handle_right = oldpoint.co + prop_direction
+    newpoint.handle_left = newpoint.co - prop_direction
+    newpoint.handle_right = newpoint.co + prop_direction
     
 def branch(curve, position):
     """Creates a branch in curve at position
