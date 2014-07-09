@@ -53,6 +53,17 @@ class LindenmayerSystem(bpy.types.Operator):
                               subtype="ANGLE",
                               unit='ROTATION',
                               default=radians(60))
+    
+    bevel_depth = FloatProperty(name="Depth",
+                                min=0,
+                                precision=3,
+                                step=0.1,
+                                default=0)
+
+    bevel_resolution = IntProperty(name="Resolution",
+                                   min=0,
+                                   max=32,
+                                   default=0)
 
     @classmethod
     def poll(cls, context):
@@ -71,10 +82,17 @@ class LindenmayerSystem(bpy.types.Operator):
     def draw(self, context):
         layout = self.layout
         column = layout.column()
+        
+        # Rules
         column.label("Rules:")
         column.prop(self, "lsystem")
+
+        # Settings
+        column.label("Settings")
         column.prop(self, "iterations")
         column.prop(self, "angle")
+        column.prop(self, "bevel_depth")
+        column.prop(self, "bevel_resolution")
 
     def apply_turtle(self):
         direction = Vector((0, 0, 1))
@@ -87,6 +105,9 @@ class LindenmayerSystem(bpy.types.Operator):
         curve = bpy.data.curves.new('LSystem', 'CURVE')
         curve.dimensions = '3D'
         curve.fill_mode = 'FULL'
+        curve.bevel_depth = self.bevel_depth
+        curve.bevel_resolution = self.bevel_resolution
+
         obj = bpy.data.objects.new('LSystem', curve)
         bpy.context.scene.objects.link(obj)
         curve.splines.new('BEZIER')
