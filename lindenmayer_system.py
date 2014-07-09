@@ -64,6 +64,10 @@ class LindenmayerSystem(bpy.types.Operator):
                                    min=0,
                                    max=32,
                                    default=0)
+    
+    basic_length = FloatProperty(name="Length",
+                                 min=0, 
+                                 default=2)
 
     @classmethod
     def poll(cls, context):
@@ -93,6 +97,7 @@ class LindenmayerSystem(bpy.types.Operator):
         column.prop(self, "angle")
         column.prop(self, "bevel_depth")
         column.prop(self, "bevel_resolution")
+        column.prop(self, "basic_length")
 
     def apply_turtle(self):
         direction = Vector((0, 0, 1))
@@ -115,7 +120,7 @@ class LindenmayerSystem(bpy.types.Operator):
 
         for symbol in system:
             if (symbol == 'F'):
-                grow(spline, trans.get_vector(), 1.0 / (occ ** self.iterations))
+                grow(spline, trans.get_vector(), self.basic_length * 1.0 / (occ ** self.iterations))
                 continue
 
             if (symbol == '+'):
@@ -177,17 +182,17 @@ def count(string, character):
 
     return cnt
         
-def grow(spline, direction, scale):
+def grow(spline, direction, amount):
     newpoint = spline.bezier_points[-1]
     oldpoint = spline.bezier_points[-2]
-    prop_direction = direction * scale
+    direction = direction * amount
 
-    newpoint.co = newpoint.co + (prop_direction * 3)
+    newpoint.co = newpoint.co + direction
 
-    oldpoint.handle_left = oldpoint.co - prop_direction
-    oldpoint.handle_right = oldpoint.co + prop_direction
-    newpoint.handle_left = newpoint.co - prop_direction
-    newpoint.handle_right = newpoint.co + prop_direction
+    oldpoint.handle_left = oldpoint.co - direction
+    oldpoint.handle_right = oldpoint.co + direction
+    newpoint.handle_left = newpoint.co - direction
+    newpoint.handle_right = newpoint.co + direction
     
 def branch(curve, position):
     """Creates a branch in curve at position
