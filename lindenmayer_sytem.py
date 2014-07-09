@@ -110,12 +110,12 @@ class LindenmayerSystem(bpy.types.Operator):
 
         obj = bpy.data.objects.new('LSystem', curve)
         bpy.context.scene.objects.link(obj)
-        curve.splines.new('BEZIER')
-        spline = curve.splines[-1]
+        
+        spline = branch(curve, Vector((0, 0, 0)))
 
         for symbol in system:
             if (symbol == 'F'):
-                move_forward(spline, trans.get_vector(), 1.0)
+                grow(spline, trans.get_vector(), 1.0)
                 continue
 
             if (symbol == '+'):
@@ -143,13 +143,9 @@ class LindenmayerSystem(bpy.types.Operator):
                 continue
 
             if (symbol == '['):
-                oldpoint = spline.bezier_points[-1]
-
                 stack.append((spline, copy(trans)))
-                curve.splines.new('BEZIER')
-                spline = curve.splines[-1]
 
-                spline.bezier_points[-1].co = oldpoint.co
+                spline = branch(curve, spline.bezier_points[-1].co)
                 continue
 
             if (symbol == ']'):
@@ -164,18 +160,43 @@ class LindenmayerSystem(bpy.types.Operator):
 
         return newstring
 
-def move_forward(spline, direction, scale):
-    spline.bezier_points.add()
+def grow(spline, direction, scale):
     newpoint = spline.bezier_points[-1]
     oldpoint = spline.bezier_points[-2]
 
-    newpoint.co = oldpoint.co + (direction * 3 * scale)
+    newpoint.co = newpoint.co + (direction * 3 * scale)
 
+    oldpoint.handle_left = oldpoint.co - direction
     oldpoint.handle_right = oldpoint.co + direction
     newpoint.handle_left = newpoint.co - direction
     newpoint.handle_right = newpoint.co + direction
     
-        
+def branch(curve, position):
+    """Creates a branch in curve at position
+    
+    Arguments:
+    curve    -- Blender curve
+    position -- Starting point of the new branch
+    """
+
+    # New spline (automatically creates a bezier point)
+    spline = new_spline(curve, position)
+
+    # Add second point
+    spline.bezier_points.add()
+    newpoint = spline.bezier_points[-1]
+    oldpoint = spline.bezier_points[-2]
+    newpoint.co = oldpoint.co
+    
+    return spline
+
+def new_spline(curve, position):
+    curve.splines.new('BEZIER')
+    spline = curve.splines[-1]
+    spline.bezier_points[-1].co = position
+    return spline
+
+    
 def menu_func(self, context):
     self.layout.operator(LindenmayerSystem.bl_idname, text="L-system", icon='PLUGIN')
 
