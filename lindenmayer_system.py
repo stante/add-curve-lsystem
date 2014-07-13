@@ -41,16 +41,16 @@ def template_production(layout, production):
 
     row = box.row()
     row.operator("lindenmayer_system.production_add", icon='TRIA_RIGHT', emboss=False)
-    #row.prop(production, "rule")
+    row.prop(production, "rule")
     rowmove = row.row(align=True)
     rowmove.operator("lindenmayer_system.production_add", icon='TRIA_UP')
     rowmove.operator("lindenmayer_system.production_add", icon='TRIA_DOWN')
     row.operator("lindenmayer_system.production_add", icon='X', emboss=False)
         
     return box
-    
+
 class ProductionItem(bpy.types.PropertyGroup):
-    rule = StringProperty("Rule")
+    rule = StringProperty("Rule", name="")
 
 class ProductionAdd(bpy.types.Operator):
     bl_idname = "lindenmayer_system.production_add"
@@ -114,14 +114,14 @@ class LindenmayerSystem(bpy.types.Operator):
     def draw(self, context):
         layout = self.layout
         column = layout.column()
-        
+
         # Rules
         row = column.row(align=True)
         row.prop(self, "rule", icon='ERROR')
         row.operator("lindenmayer_system.production_add", icon='ZOOMIN')
 
-        #for prop in self.productions:
-        #    template_production(column, prop)
+        for prop in self.productions:
+            template_production(column, prop)
 
         # Settings
         column.separator()
