@@ -23,6 +23,8 @@ from math import radians
 from bpy.props import StringProperty
 from bpy.props import IntProperty
 from bpy.props import FloatProperty
+from bpy.props import CollectionProperty
+from bpy.types import PropertyGroup
 
 bl_info = {
     "name"     : "Lindenmayer system",
@@ -34,14 +36,34 @@ bl_info = {
     "warning"  : "Under development"
 }
 
+def template_production(layout, production):
+    box = layout.box()
+
+    row = box.row()
+    row.operator("lindenmayer_system.production_add", icon='TRIA_RIGHT', emboss=False)
+    #row.prop(production, "rule")
+    rowmove = row.row(align=True)
+    rowmove.operator("lindenmayer_system.production_add", icon='TRIA_UP')
+    rowmove.operator("lindenmayer_system.production_add", icon='TRIA_DOWN')
+    row.operator("lindenmayer_system.production_add", icon='X', emboss=False)
+        
+    return box
+    
+
+class ProductionItem(bpy.types.PropertyGroup):
+    rule = StringProperty("Rule")
+
+class ProductionAdd(bpy.types.Operator):
+    bl_idname = "lindenmayer_system.production_add"
+    bl_label = ""
+
 class LindenmayerSystem(bpy.types.Operator):
     """Construct turtle based on active object"""
     bl_idname = "object.lindenmayer_system"
     bl_label = "Create L-system"
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
     
-    lsystem = StringProperty(name='L-System',
-                             default='F[+F]F[-F]F')
+    lsystem = StringProperty(default='F[+F]F[-F]F')
 
     iterations = IntProperty(name="Iterations",
                              min=0,
@@ -69,6 +91,8 @@ class LindenmayerSystem(bpy.types.Operator):
                                  min=0, 
                                  default=2)
 
+    productions = CollectionProperty(type=ProductionItem)
+
     @classmethod
     def poll(cls, context):
         return True
@@ -90,8 +114,15 @@ class LindenmayerSystem(bpy.types.Operator):
         # Rules
         column.label("Rules:")
         column.prop(self, "lsystem")
+        row = column.row(align=True)
+        row.prop(self, "production", icon='ERROR')
+        row.operator("lindenmayer_system.production_add", icon='ZOOMIN')
+
+        for prop in self.productions:
+            template_production(column, prop)
 
         # Settings
+        column.separator()
         column.label("Settings")
         column.prop(self, "iterations")
         column.prop(self, "angle")
