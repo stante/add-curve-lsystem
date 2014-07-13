@@ -49,35 +49,6 @@ def template_production(layout, production):
         
     return box
     
-class LindenmayerSystemSettings(bpy.types.PropertyGroup):
-    iterations = IntProperty(name="Iterations",
-                             min=0,
-                             max=8,
-                             default=0,
-                             description="Iterations - number of rule applications")
-    
-    angle = FloatProperty(name="Angle", 
-                              subtype="ANGLE",
-                              unit='ROTATION',
-                              default=radians(60))
-    
-    bevel_depth = FloatProperty(name="Depth",
-                                min=0,
-                                precision=3,
-                                step=0.1,
-                                default=0)
-
-    bevel_resolution = IntProperty(name="Resolution",
-                                   min=0,
-                                   max=32,
-                                   default=0)
-    
-    basic_length = FloatProperty(name="Length",
-                                 min=0, 
-                                 default=2)
-
-    productions = CollectionProperty(type=ProductionItem)
-    
 class ProductionItem(bpy.types.PropertyGroup):
     rule = StringProperty("Rule")
 
@@ -86,7 +57,7 @@ class ProductionAdd(bpy.types.Operator):
     bl_label = ""
 
     def execute(self, context):
-        print("ProductionAdd pressed")
+        print("ProductionAdd pressed, ctx: ", context)
         return {'FINISHED'}
 
 class LindenmayerSystem(bpy.types.Operator):
@@ -131,6 +102,7 @@ class LindenmayerSystem(bpy.types.Operator):
         return bpy.context.object is not None
         
     def execute(self, context):
+        print("Execute, ctx: ", context)
         self.apply_turtle()
         return {'FINISHED'}
 
@@ -148,8 +120,8 @@ class LindenmayerSystem(bpy.types.Operator):
         row.prop(self, "rule", icon='ERROR')
         row.operator("lindenmayer_system.production_add", icon='ZOOMIN')
 
-        for prop in self.productions:
-            template_production(column, prop)
+        #for prop in self.productions:
+        #    template_production(column, prop)
 
         # Settings
         column.separator()
