@@ -59,7 +59,7 @@ class ProductionAdd(bpy.types.Operator):
 
 class LindenmayerSystem(bpy.types.Operator):
     """Construct turtle based on active object"""
-    bl_idname = "object.lindenmayer_system"
+    bl_idname = "curve.lindenmayer_system"
     bl_label = "Create L-system"
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
     
