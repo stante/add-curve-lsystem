@@ -49,7 +49,35 @@ def template_production(layout, production):
         
     return box
     
+class LindenmayerSystemSettings(bpy.types.PropertyGroup):
+    iterations = IntProperty(name="Iterations",
+                             min=0,
+                             max=8,
+                             default=0,
+                             description="Iterations - number of rule applications")
+    
+    angle = FloatProperty(name="Angle", 
+                              subtype="ANGLE",
+                              unit='ROTATION',
+                              default=radians(60))
+    
+    bevel_depth = FloatProperty(name="Depth",
+                                min=0,
+                                precision=3,
+                                step=0.1,
+                                default=0)
 
+    bevel_resolution = IntProperty(name="Resolution",
+                                   min=0,
+                                   max=32,
+                                   default=0)
+    
+    basic_length = FloatProperty(name="Length",
+                                 min=0, 
+                                 default=2)
+
+    productions = CollectionProperty(type=ProductionItem)
+    
 class ProductionItem(bpy.types.PropertyGroup):
     rule = StringProperty("Rule")
 
@@ -57,13 +85,17 @@ class ProductionAdd(bpy.types.Operator):
     bl_idname = "lindenmayer_system.production_add"
     bl_label = ""
 
+    def execute(self, context):
+        print("ProductionAdd pressed")
+        return {'FINISHED'}
+
 class LindenmayerSystem(bpy.types.Operator):
     """Construct turtle based on active object"""
     bl_idname = "curve.lindenmayer_system"
     bl_label = "Create L-system"
     bl_options = {'REGISTER', 'UNDO', 'PRESET'}
     
-    lsystem = StringProperty(default='F[+F]F[-F]F')
+    rule = StringProperty(name="Rule", default='F[+F]F[-F]F')
 
     iterations = IntProperty(name="Iterations",
                              min=0,
@@ -112,10 +144,8 @@ class LindenmayerSystem(bpy.types.Operator):
         column = layout.column()
         
         # Rules
-        column.label("Rules:")
-        column.prop(self, "lsystem")
         row = column.row(align=True)
-        row.prop(self, "production", icon='ERROR')
+        row.prop(self, "rule", icon='ERROR')
         row.operator("lindenmayer_system.production_add", icon='ZOOMIN')
 
         for prop in self.productions:
@@ -134,7 +164,7 @@ class LindenmayerSystem(bpy.types.Operator):
         direction = Vector((0, 0, 1))
         trans = Movement(direction)
         stack = []
-        occ = count(self.lsystem, 'F')
+        occ = count(self.rule, 'F')
         system = self.recursive_apply(self.iterations)
 
         # Create new curve object
@@ -189,10 +219,10 @@ class LindenmayerSystem(bpy.types.Operator):
                 continue
 
     def recursive_apply(self, times):
-        newstring = self.lsystem
+        newstring = self.rule
 
         for i in range(times):
-            newstring = newstring.replace('F', self.lsystem)
+            newstring = newstring.replace('F', self.rule)
 
         return newstring
 
