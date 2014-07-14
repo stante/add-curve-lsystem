@@ -92,7 +92,8 @@ class ProductionAdd(bpy.types.Operator):
     bl_label = ""
 
     def execute(self, context):
-        print("ProductionAdd pressed, ctx: ", context)
+        settings = context.window_manager.lindenmayer_settings
+        settings.productions.add()
         return {'FINISHED'}
 
 class LindenmayerSystem(bpy.types.Operator):
