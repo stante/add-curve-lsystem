@@ -44,8 +44,15 @@ def template_production(layout, production, index):
     row.operator("lindenmayer_system.production_add", icon='TRIA_RIGHT', emboss=False)
     row.prop(production, "rule")
     rowmove = row.row(align=True)
-    rowmove.operator("lindenmayer_system.production_add", icon='TRIA_UP')
-    rowmove.operator("lindenmayer_system.production_add", icon='TRIA_DOWN')
+    # Move up
+    op = rowmove.operator("lindenmayer_system.production_move", icon='TRIA_UP')
+    op.direction = 'UP'
+    op.index = index
+    # Move down
+    op = rowmove.operator("lindenmayer_system.production_move", icon='TRIA_DOWN')
+    op.direction = 'DOWN'
+    op.index = index
+    # Remove rule
     row.operator("lindenmayer_system.production_remove", icon='X', emboss=False).index = index
         
     return box
@@ -85,6 +92,22 @@ class OperatorSettings(bpy.types.PropertyGroup):
                                  default=2)
 
     productions = CollectionProperty(type=ProductionItem)
+
+class ProductionMove(bpy.types.Operator):
+    bl_idname = "lindenmayer_system.production_move"
+    bl_label = ""
+
+    direction = StringProperty()
+    index = IntProperty()
+
+    def execute(self, context):
+        rules = context.window_manager.lindenmayer_settings.productions
+        if self.direction == 'UP' and self.index > 0:
+            rules.move(self.index, self.index - 1)
+        elif self.direction == 'DOWN' and self.index < len(rules) - 1:
+            rules.move(self.index, self.index + 1)
+
+        return {'FINISHED'}
 
 class ProductionRemove(bpy.types.Operator):
     bl_idname = "lindenmayer_system.production_remove"
