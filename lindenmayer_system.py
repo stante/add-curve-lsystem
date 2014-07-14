@@ -37,7 +37,7 @@ bl_info = {
     "warning"  : "Under development"
 }
 
-def template_production(layout, production):
+def template_production(layout, production, index):
     box = layout.box()
 
     row = box.row()
@@ -46,7 +46,7 @@ def template_production(layout, production):
     rowmove = row.row(align=True)
     rowmove.operator("lindenmayer_system.production_add", icon='TRIA_UP')
     rowmove.operator("lindenmayer_system.production_add", icon='TRIA_DOWN')
-    row.operator("lindenmayer_system.production_add", icon='X', emboss=False)
+    row.operator("lindenmayer_system.production_remove", icon='X', emboss=False).index = index
         
     return box
 
@@ -86,6 +86,15 @@ class OperatorSettings(bpy.types.PropertyGroup):
 
     productions = CollectionProperty(type=ProductionItem)
 
+class ProductionRemove(bpy.types.Operator):
+    bl_idname = "lindenmayer_system.production_remove"
+    bl_label = ""
+
+    index = IntProperty()
+
+    def execute(self, context):
+        context.window_manager.lindenmayer_settings.productions.remove(self.index)
+        return {'FINISHED'}
 
 class ProductionAdd(bpy.types.Operator):
     bl_idname = "lindenmayer_system.production_add"
@@ -127,8 +136,8 @@ class LindenmayerSystem(bpy.types.Operator):
         row.prop(settings, "rule", icon='ERROR')
         row.operator("lindenmayer_system.production_add", icon='ZOOMIN')
 
-        for prop in settings.productions:
-            template_production(column, prop)
+        for idx, prop in enumerate(settings.productions):
+            template_production(column, prop, idx)
 
         # Settings
         column.separator()
