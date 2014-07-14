@@ -24,6 +24,7 @@ from bpy.props import StringProperty
 from bpy.props import IntProperty
 from bpy.props import FloatProperty
 from bpy.props import CollectionProperty
+from bpy.props import PointerProperty
 from bpy.types import PropertyGroup
 
 bl_info = {
@@ -52,20 +53,9 @@ def template_production(layout, production):
 class ProductionItem(bpy.types.PropertyGroup):
     rule = StringProperty("Rule", name="")
 
-class ProductionAdd(bpy.types.Operator):
-    bl_idname = "lindenmayer_system.production_add"
-    bl_label = ""
+class OperatorSettings(bpy.types.PropertyGroup):
+    bl_idname = "lindenmayer_system.settings"
 
-    def execute(self, context):
-        print("ProductionAdd pressed, ctx: ", context)
-        return {'FINISHED'}
-
-class LindenmayerSystem(bpy.types.Operator):
-    """Construct turtle based on active object"""
-    bl_idname = "curve.lindenmayer_system"
-    bl_label = "Create L-system"
-    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
-    
     rule = StringProperty(name="Rule", default='F[+F]F[-F]F')
 
     iterations = IntProperty(name="Iterations",
@@ -96,6 +86,21 @@ class LindenmayerSystem(bpy.types.Operator):
 
     productions = CollectionProperty(type=ProductionItem)
 
+
+class ProductionAdd(bpy.types.Operator):
+    bl_idname = "lindenmayer_system.production_add"
+    bl_label = ""
+
+    def execute(self, context):
+        print("ProductionAdd pressed, ctx: ", context)
+        return {'FINISHED'}
+
+class LindenmayerSystem(bpy.types.Operator):
+    """Construct turtle based on active object"""
+    bl_idname = "curve.lindenmayer_system"
+    bl_label = "Create L-system"
+    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
+    
     @classmethod
     def poll(cls, context):
         return True
@@ -103,7 +108,7 @@ class LindenmayerSystem(bpy.types.Operator):
         
     def execute(self, context):
         print("Execute, ctx: ", context)
-        self.apply_turtle()
+        self.apply_turtle(context.window_manager.lindenmayer_settings)
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -112,39 +117,40 @@ class LindenmayerSystem(bpy.types.Operator):
         return self.execute(context)
 
     def draw(self, context):
+        settings = context.window_manager.lindenmayer_settings
         layout = self.layout
         column = layout.column()
 
         # Rules
         row = column.row(align=True)
-        row.prop(self, "rule", icon='ERROR')
+        row.prop(settings, "rule", icon='ERROR')
         row.operator("lindenmayer_system.production_add", icon='ZOOMIN')
 
-        for prop in self.productions:
+        for prop in settings.productions:
             template_production(column, prop)
 
         # Settings
         column.separator()
         column.label("Settings")
-        column.prop(self, "iterations")
-        column.prop(self, "angle")
-        column.prop(self, "bevel_depth")
-        column.prop(self, "bevel_resolution")
-        column.prop(self, "basic_length")
+        column.prop(settings, "iterations")
+        column.prop(settings, "angle")
+        column.prop(settings, "bevel_depth")
+        column.prop(settings, "bevel_resolution")
+        column.prop(settings, "basic_length")
 
-    def apply_turtle(self):
+    def apply_turtle(self, settings):
         direction = Vector((0, 0, 1))
         trans = Movement(direction)
         stack = []
-        occ = count(self.rule, 'F')
-        system = self.recursive_apply(self.iterations)
+        occ = count(settings.rule, 'F')
+        system = recursive_apply(settings.rule, settings.iterations)
 
         # Create new curve object
         curve = bpy.data.curves.new('LSystem', 'CURVE')
         curve.dimensions = '3D'
         curve.fill_mode = 'FULL'
-        curve.bevel_depth = self.bevel_depth
-        curve.bevel_resolution = self.bevel_resolution
+        curve.bevel_depth = settings.bevel_depth
+        curve.bevel_resolution = settings.bevel_resolution
 
         obj = bpy.data.objects.new('LSystem', curve)
         bpy.context.scene.objects.link(obj)
@@ -153,31 +159,31 @@ class LindenmayerSystem(bpy.types.Operator):
 
         for symbol in system:
             if (symbol == 'F'):
-                grow(spline, trans.get_vector(), self.basic_length * 1.0 / (occ ** self.iterations))
+                grow(spline, trans.get_vector(), settings.basic_length * 1.0 / (occ ** settings.iterations))
                 continue
 
             if (symbol == '+'):
-                trans.yaw(self.angle)
+                trans.yaw(settings.angle)
                 continue
                 
             if (symbol == '-'):
-                trans.yaw(-self.angle)
+                trans.yaw(-settings.angle)
                 continue
                 
             if (symbol == '^'):
-                trans.pitch(self.angle)
+                trans.pitch(settings.angle)
                 continue
 
             if (symbol == '&'):
-                trans.pitch(-self.angle)
+                trans.pitch(-settings.angle)
                 continue
 
             if (symbol == '\\'):
-                trans.roll(self.angle)
+                trans.roll(settings.angle)
                 continue
 
             if (symbol == '/'):
-                trans.roll(-self.angle)
+                trans.roll(-settings.angle)
                 continue
 
             if (symbol == '['):
@@ -190,13 +196,13 @@ class LindenmayerSystem(bpy.types.Operator):
                 spline, trans = stack.pop()
                 continue
 
-    def recursive_apply(self, times):
-        newstring = self.rule
+def recursive_apply(rule, times):
+    newstring = rule
 
-        for i in range(times):
-            newstring = newstring.replace('F', self.rule)
+    for i in range(times):
+        newstring = newstring.replace('F', rule)
 
-        return newstring
+    return newstring
 
 def count(string, character):
     cnt = 0
@@ -259,6 +265,8 @@ def menu_func(self, context):
 def register():
     bpy.utils.register_module(__name__)
     bpy.types.INFO_MT_curve_add.append(menu_func)
+    bpy.types.WindowManager.lindenmayer_settings = PointerProperty(type=OperatorSettings,
+                                                                   name="Operator Settings")
 
 def unregister():
     bpy.utils.unregister_module(__name__)
