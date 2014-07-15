@@ -166,6 +166,10 @@ class ProductionRemove(bpy.types.Operator):
         return {'FINISHED'}
 
 class ProductionAdd(bpy.types.Operator):
+    """Operator to add a new rule to the Lindenmayer System
+
+    Adds a new rule by adding a ProductionItem to the production collection
+    """
     bl_idname = "lindenmayer_system.production_add"
     bl_label = ""
 
@@ -185,10 +189,8 @@ class LindenmayerSystem(bpy.types.Operator):
     @classmethod
     def poll(cls, context):
         return True
-        return bpy.context.object is not None
         
     def execute(self, context):
-        print("Execute, ctx: ", context)
         self.apply_turtle(context.window_manager.lindenmayer_settings)
 
         return {'FINISHED'}
