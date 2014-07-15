@@ -39,7 +39,8 @@ bl_info = {
 }
 
 def template_production(layout, production, index):
-    box = layout.box()
+    col = layout.column(align=True)
+    box = col.box()
 
     row = box.row()
 
@@ -65,6 +66,7 @@ def template_production(layout, production, index):
     row.operator("lindenmayer_system.production_remove", icon='X', emboss=False).index = index
 
     if production.show_extended:
+        box = col.box()
         col = box.column()
         col.prop(production, "probability")
         
