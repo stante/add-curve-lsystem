@@ -162,6 +162,7 @@ class ProductionRemove(bpy.types.Operator):
 
     def execute(self, context):
         context.window_manager.lindenmayer_settings.productions.remove(self.index)
+
         return {'FINISHED'}
 
 class ProductionAdd(bpy.types.Operator):
@@ -172,6 +173,7 @@ class ProductionAdd(bpy.types.Operator):
         settings = context.window_manager.lindenmayer_settings
         prop = settings.productions.add()
         prop.rule = settings.rule
+
         return {'FINISHED'}
 
 class LindenmayerSystem(bpy.types.Operator):
@@ -188,11 +190,10 @@ class LindenmayerSystem(bpy.types.Operator):
     def execute(self, context):
         print("Execute, ctx: ", context)
         self.apply_turtle(context.window_manager.lindenmayer_settings)
+
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        #wm = context.window_manager
-        #return wm.invoke_props_dialog(self)
         return self.execute(context)
 
     def draw(self, context):
