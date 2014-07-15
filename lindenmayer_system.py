@@ -11,7 +11,7 @@
 #  GNU General Public License for more details.
 #
 #  You should have received a copy of the GNU General Public License
-#  along with this program; if not, write to the Free Software Foundation,
+#  along with this program; if not, write to the Ftube.com/ree Software Foundation,
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
@@ -38,37 +38,48 @@ bl_info = {
     "warning"  : "Under development"
 }
 
-def template_production(layout, production, index):
+def draw_rule(layout, rule, index):
+    """Draw a Lindenmayer rule on the layout
+    
+    layout -- the layout to draw on
+    rule   -- the rule to be drawn
+    index  -- the index of the rule in the rule collection
+    """
     col = layout.column(align=True)
     box = col.box()
 
     row = box.row()
 
-    icon = 'TRIA_RIGHT'
-    if production.show_extended:
-        icon = 'TRIA_DOWN'
-
-    prop = row.operator("lindenmayer_system.production_show_extended", icon=icon, emboss=False)
+    # Extended arrow
+    prop = row.operator("lindenmayer_system.production_show_extended", 
+                        icon='TRIA_DOWN' if rule.show_extended else 'TRIA_RIGHT', 
+                        emboss=False)
     prop.index = index
 
-    row.prop(production, "rule")
+    # Rule string
+    row.prop(rule, "rule")
 
     rowmove = row.row(align=True)
+   
     # Move up
     op = rowmove.operator("lindenmayer_system.production_move", icon='TRIA_UP')
     op.direction = 'UP'
     op.index = index
+    
     # Move down
     op = rowmove.operator("lindenmayer_system.production_move", icon='TRIA_DOWN')
     op.direction = 'DOWN'
     op.index = index
+    
     # Remove rule
-    row.operator("lindenmayer_system.production_remove", icon='X', emboss=False).index = index
+    prop = row.operator("lindenmayer_system.production_remove", icon='X', emboss=False)
+    prop.index = index
 
-    if production.show_extended:
+    # Extendend properties
+    if rule.show_extended:
         box = col.box()
         col = box.column()
-        col.prop(production, "probability")
+        col.prop(rule, "probability")
         
     return box
 
@@ -195,7 +206,7 @@ class LindenmayerSystem(bpy.types.Operator):
         row.operator("lindenmayer_system.production_add", icon='ZOOMIN')
 
         for idx, prop in enumerate(settings.productions):
-            template_production(column, prop, idx)
+            draw_rule(column, prop, idx)
 
         # Settings
         column.separator()
