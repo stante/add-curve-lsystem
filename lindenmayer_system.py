@@ -125,7 +125,8 @@ class ProductionAdd(bpy.types.Operator):
 
     def execute(self, context):
         settings = context.window_manager.lindenmayer_settings
-        settings.productions.add()
+        prop = settings.productions.add()
+        prop.rule = settings.rule
         return {'FINISHED'}
 
 class LindenmayerSystem(bpy.types.Operator):
