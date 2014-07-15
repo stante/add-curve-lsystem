@@ -25,6 +25,7 @@ from bpy.props import IntProperty
 from bpy.props import FloatProperty
 from bpy.props import CollectionProperty
 from bpy.props import PointerProperty
+from bpy.props import BoolProperty
 from bpy.types import PropertyGroup
 
 bl_info = {
@@ -41,8 +42,16 @@ def template_production(layout, production, index):
     box = layout.box()
 
     row = box.row()
-    row.operator("lindenmayer_system.production_add", icon='TRIA_RIGHT', emboss=False)
+
+    icon = 'TRIA_RIGHT'
+    if production.show_extended:
+        icon = 'TRIA_DOWN'
+
+    prop = row.operator("lindenmayer_system.production_show_extended", icon=icon, emboss=False)
+    prop.index = index
+
     row.prop(production, "rule")
+
     rowmove = row.row(align=True)
     # Move up
     op = rowmove.operator("lindenmayer_system.production_move", icon='TRIA_UP')
@@ -54,11 +63,22 @@ def template_production(layout, production, index):
     op.index = index
     # Remove rule
     row.operator("lindenmayer_system.production_remove", icon='X', emboss=False).index = index
+
+    if production.show_extended:
+        col = box.column()
+        col.prop(production, "probability")
         
     return box
 
 class ProductionItem(bpy.types.PropertyGroup):
     rule = StringProperty("Rule", name="")
+
+    show_extended = BoolProperty(default=True)
+
+    probability = FloatProperty(name="Probability",
+                                min=0,
+                                max=1,
+                                default=1)
 
 class OperatorSettings(bpy.types.PropertyGroup):
     bl_idname = "lindenmayer_system.settings"
@@ -92,6 +112,18 @@ class OperatorSettings(bpy.types.PropertyGroup):
                                  default=2)
 
     productions = CollectionProperty(type=ProductionItem)
+
+class ProductionShowExtended(bpy.types.Operator):
+    bl_idname = "lindenmayer_system.production_show_extended"
+    bl_label = ""
+
+    index = IntProperty()
+    
+    def execute(self, context):
+        settings = context.window_manager.lindenmayer_settings
+        settings.productions[self.index].show_extended = not settings.productions[self.index].show_extended
+        
+        return {'FINISHED'}
 
 class ProductionMove(bpy.types.Operator):
     bl_idname = "lindenmayer_system.production_move"
