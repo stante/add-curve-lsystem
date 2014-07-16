@@ -12,6 +12,7 @@ WS         = r'(?P<WS>\s+)'
 Token = namedtuple('Token', ['type', 'value'])
 
 class LindenmayerSystemParser:
+    parsed_sequence = []
 
     def __init__(self):
         self.pattern = re.compile('|'.join([SYMBOL, REPLACE, DIRECTION, PUSH, POP,  WS]))
@@ -26,9 +27,11 @@ class LindenmayerSystemParser:
         self.tokens = self._tokenize(string)
         self.current_token = None
         self.next_token = None
+        self.parsed_sequence = []
 
     def _advance(self):
         self.current_token, self.next_token = self.next_token, next(self.tokens, Token('EMPTY', 'EMPTY'))
+        self.parsed_sequence.append(self.next_token)
   
     def _expect(self, symbol):
         if not self._accept(symbol):
@@ -55,7 +58,10 @@ class LindenmayerSystemParser:
         self._startover(string)
         self._advance()
 
+        # Apply start rule
         self._rule()
+        
+        return self.parsed_sequence
         
     def _rule(self):
         """rule ::= SYMBOL := movement"""
