@@ -45,18 +45,18 @@ class LindenmayerSystemParser:
         return self.pattern.scanner(string)
 
     def rule_valid(self, string):
-        self._startover(string)
-        self._advance()
-
         try:
-            self._rule()
+            self.parse(string)
             return True
         except SyntaxError:
             return False
 
     def parse(self, string):
-        pass
+        self._startover(string)
+        self._advance()
 
+        self._rule()
+        
     def _rule(self):
         """rule ::= SYMBOL := movement"""
         if self._accept('SYMBOL'):
