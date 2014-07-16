@@ -225,7 +225,7 @@ class LindenmayerSystem(bpy.types.Operator):
         trans = Movement(direction)
         stack = []
         occ = count(settings.rule, 'F')
-        system = recursive_apply(settings.rule, settings.iterations)
+        system = recursive_apply("F", settings.rule, settings.iterations)
 
         # Create new curve object
         curve = bpy.data.curves.new('LSystem', 'CURVE')
@@ -278,11 +278,11 @@ class LindenmayerSystem(bpy.types.Operator):
                 spline, trans = stack.pop()
                 continue
 
-def recursive_apply(rule, times):
-    newstring = rule
+def recursive_apply(start, rules, times):
+    newstring = start
 
     for i in range(times):
-        newstring = newstring.replace('F', rule)
+        newstring = newstring.replace('F', rules)
 
     return newstring
 
