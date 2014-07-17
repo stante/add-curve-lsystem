@@ -27,6 +27,7 @@ from bpy.props import CollectionProperty
 from bpy.props import PointerProperty
 from bpy.props import BoolProperty
 from bpy.types import PropertyGroup
+from lindenmayer_system_parser import LindenmayerSystemParser
 
 bl_info = {
     "name"     : "Lindenmayer system",
@@ -57,7 +58,7 @@ def draw_rule(layout, rule, index):
     prop.index = index
 
     # Rule string
-    row.prop(rule, "rule")
+    row.prop(rule, "rule", icon='NONE' if rule.is_valid else 'ERROR')
 
     rowmove = row.row(align=True)
    
@@ -83,8 +84,16 @@ def draw_rule(layout, rule, index):
         
     return box
 
+def check_rule(self, context):
+    if self.parser.rule_valid(self.rule):
+        self.is_valid = True
+    else:
+        self.is_valid = False
+
+
 class ProductionItem(bpy.types.PropertyGroup):
-    rule = StringProperty("Rule", name="")
+    is_valid = BoolProperty(True)
+    rule = StringProperty(name="", update=check_rule)
 
     show_extended = BoolProperty(default=True)
 
@@ -92,6 +101,9 @@ class ProductionItem(bpy.types.PropertyGroup):
                                 min=0,
                                 max=1,
                                 default=1)
+
+    parser = LindenmayerSystemParser()
+
 
 class OperatorSettings(bpy.types.PropertyGroup):
     bl_idname = "lindenmayer_system.settings"
