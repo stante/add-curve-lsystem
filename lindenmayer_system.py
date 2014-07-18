@@ -93,7 +93,7 @@ def check_rule(self, context):
 
 class ProductionItem(bpy.types.PropertyGroup):
     is_valid = BoolProperty(True)
-    rule = StringProperty(name="", update=check_rule)
+    rule = StringProperty(name="", default="F:=F", update=check_rule)
 
     show_extended = BoolProperty(default=True)
 
@@ -108,7 +108,7 @@ class ProductionItem(bpy.types.PropertyGroup):
 class OperatorSettings(bpy.types.PropertyGroup):
     bl_idname = "lindenmayer_system.settings"
 
-    rule = StringProperty(name="Rule", default='F[+F]F[-F]F')
+    production = PointerProperty(type=ProductionItem, name="Production")
 
     iterations = IntProperty(name="Iterations",
                              min=0,
@@ -187,8 +187,10 @@ class ProductionAdd(bpy.types.Operator):
 
     def execute(self, context):
         settings = context.window_manager.lindenmayer_settings
-        prop = settings.productions.add()
-        prop.rule = settings.rule
+
+        if settings.production.is_valid:
+            prop = settings.productions.add()
+            prop.rule = settings.production.rule
 
         return {'FINISHED'}
 
@@ -217,7 +219,8 @@ class LindenmayerSystem(bpy.types.Operator):
 
         # Rules
         row = column.row(align=True)
-        row.prop(settings, "rule")
+        row.prop(settings.production, "rule", icon='NONE' if settings.production.is_valid
+                 else 'ERROR')
         row.operator("lindenmayer_system.production_add", icon='ZOOMIN')
 
         for idx, prop in enumerate(settings.productions):
@@ -236,8 +239,8 @@ class LindenmayerSystem(bpy.types.Operator):
         direction = Vector((0, 0, 1))
         trans = Movement(direction)
         stack = []
-        occ = count(settings.rule, 'F')
-        system = apply_rules("F", settings.rule, settings.iterations)
+        occ = count(settings.production.rule, 'F')
+        system = apply_rules("F", settings.production.rule, settings.iterations)
 
         # Create new curve object
         curve = bpy.data.curves.new('LSystem', 'CURVE')
