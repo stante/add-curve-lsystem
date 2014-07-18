@@ -217,7 +217,7 @@ class LindenmayerSystem(bpy.types.Operator):
 
         # Rules
         row = column.row(align=True)
-        row.prop(settings, "rule", icon='ERROR')
+        row.prop(settings, "rule")
         row.operator("lindenmayer_system.production_add", icon='ZOOMIN')
 
         for idx, prop in enumerate(settings.productions):
