@@ -245,7 +245,6 @@ class LindenmayerSystem(bpy.types.Operator):
         direction = Vector((0, 0, 1))
         trans = Movement(direction)
         stack = []
-        occ = count(settings.production.rule, 'F')
 
         # Create start token
         start = [Token(type='SYMBOL', value='F')]
@@ -260,6 +259,7 @@ class LindenmayerSystem(bpy.types.Operator):
                 rules[l.value] = [r]
 
         system = apply_rules(start, rules, settings.iterations)
+        length = calculate_length(system, settings.basic_length)
 
         # Create new curve object
         curve = bpy.data.curves.new('LSystem', 'CURVE')
@@ -276,7 +276,7 @@ class LindenmayerSystem(bpy.types.Operator):
         for token in system:
             if (token.type == 'SYMBOL'):
                 if (token.value == 'F'):
-                    grow(spline, trans.get_vector(), settings.basic_length * 1.0 / (occ ** settings.iterations))
+                    grow(spline, trans.get_vector(), length)
                     continue
 
             if (token.type == 'DIRECTION'):
@@ -335,22 +335,22 @@ def apply_rules(start, rules, times):
 
     return lsystem
 
-def count(string, character):
+def calculate_length(system, basic_length):
     cnt = 0
     stack = []
 
-    for c in string:
-        if c == character and not stack:
+    for token in system:
+        if token.type == 'SYMBOL' and token.value == 'F' and not stack:
             cnt+=1
             continue
 
-        if c == '[':
+        if token.type == 'PUSH':
             stack.append('[')
 
-        if c == ']':
+        if token.type == 'POP':
             stack.pop()
 
-    return cnt
+    return basic_length / cnt
         
 def grow(spline, direction, amount):
     newpoint = spline.bezier_points[-1]
