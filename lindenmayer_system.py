@@ -27,7 +27,7 @@ from bpy.props import CollectionProperty
 from bpy.props import PointerProperty
 from bpy.props import BoolProperty
 from bpy.types import PropertyGroup
-from lindenmayer_system_parser import LindenmayerSystemParser
+from lindenmayer_system_parser import LindenmayerSystemParser, Token
 
 bl_info = {
     "name"     : "Lindenmayer system",
@@ -103,6 +103,11 @@ class ProductionItem(bpy.types.PropertyGroup):
                                 default=1)
 
     parser = LindenmayerSystemParser()
+    
+    def get_parsed(self):
+        p = self.parser.parse(self.rule)
+        
+        return (p[0], p[2:])
 
 
 class OperatorSettings(bpy.types.PropertyGroup):
@@ -241,7 +246,20 @@ class LindenmayerSystem(bpy.types.Operator):
         trans = Movement(direction)
         stack = []
         occ = count(settings.production.rule, 'F')
-        system = apply_rules("F", settings.production.rule, settings.iterations)
+
+        # Create start token
+        start = [Token(type='SYMBOL', value='F')]
+
+        # Construct dictionary rules
+        rules = {}
+        for production in settings.productions:
+            l, r = production.get_parsed()
+            if l.value in rules:
+                rules[l.value].append(r)
+            else:
+                rules[l.value] = [r]
+
+        system = apply_rules(start, rules, settings.iterations)
 
         # Create new curve object
         curve = bpy.data.curves.new('LSystem', 'CURVE')
@@ -255,52 +273,67 @@ class LindenmayerSystem(bpy.types.Operator):
         
         spline = branch(curve, Vector((0, 0, 0)))
 
-        for symbol in system:
-            if (symbol == 'F'):
-                grow(spline, trans.get_vector(), settings.basic_length * 1.0 / (occ ** settings.iterations))
-                continue
+        for token in system:
+            if (token.type == 'SYMBOL'):
+                if (token.value == 'F'):
+                    grow(spline, trans.get_vector(), settings.basic_length * 1.0 / (occ ** settings.iterations))
+                    continue
 
-            if (symbol == '+'):
-                trans.yaw(settings.angle)
-                continue
+            if (token.type == 'DIRECTION'):
+                if (token.value == '+'):
+                    trans.yaw(settings.angle)
+                    continue
                 
-            if (symbol == '-'):
-                trans.yaw(-settings.angle)
-                continue
+                if (token.value == '-'):
+                    trans.yaw(-settings.angle)
+                    continue
                 
-            if (symbol == '^'):
-                trans.pitch(settings.angle)
-                continue
+                if (token.value == '^'):
+                    trans.pitch(settings.angle)
+                    continue
 
-            if (symbol == '&'):
-                trans.pitch(-settings.angle)
-                continue
+                if (token.value == '&'):
+                    trans.pitch(-settings.angle)
+                    continue
 
-            if (symbol == '\\'):
-                trans.roll(settings.angle)
-                continue
+                if (token.value == '\\'):
+                    trans.roll(settings.angle)
+                    continue
 
-            if (symbol == '/'):
-                trans.roll(-settings.angle)
-                continue
+                if (token.value == '/'):
+                    trans.roll(-settings.angle)
+                    continue
 
-            if (symbol == '['):
+            if (token.value == '['):
                 stack.append((spline, copy(trans)))
 
                 spline = branch(curve, spline.bezier_points[-1].co)
                 continue
 
-            if (symbol == ']'):
+            if (token.value == ']'):
                 spline, trans = stack.pop()
                 continue
 
+def apply_single_rule(start, rules):
+    lsystem = []
+    for token in start:
+        if token.type == 'SYMBOL':
+            if token.value in rules:
+                lsystem.extend(rules[token.value][0])
+            else:
+                lsystem.append(token)
+        else:
+            lsystem.append(token)
+
+    return lsystem
+    
 def apply_rules(start, rules, times):
-    newstring = start
+    lsystem = start
 
     for i in range(times):
-        newstring = newstring.replace('F', rules)
+        lsystem = apply_single_rule(lsystem, rules)
 
-    return newstring
+    return lsystem
 
 def count(string, character):
     cnt = 0
