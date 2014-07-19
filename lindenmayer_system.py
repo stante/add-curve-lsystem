@@ -113,6 +113,7 @@ class ProductionItem(bpy.types.PropertyGroup):
 class OperatorSettings(bpy.types.PropertyGroup):
     bl_idname = "lindenmayer_system.settings"
 
+    start_symbol = StringProperty(name="Start Symbol", default="F")
     production = PointerProperty(type=ProductionItem, name="Production")
 
     iterations = IntProperty(name="Iterations",
@@ -235,6 +236,7 @@ class LindenmayerSystem(bpy.types.Operator):
         # Settings
         column.separator()
         column.label("Settings:")
+        column.prop(settings, "start_symbol")
         column.prop(settings, "iterations")
         column.prop(settings, "angle")
         column.prop(settings, "bevel_depth")
@@ -247,7 +249,7 @@ class LindenmayerSystem(bpy.types.Operator):
         stack = []
 
         # Create start token
-        start = [Token(type='SYMBOL', value='F')]
+        start = [Token(type='SYMBOL', value=settings.start_symbol)]
 
         # Construct dictionary rules
         rules = {}
@@ -259,6 +261,7 @@ class LindenmayerSystem(bpy.types.Operator):
                 rules[l.value] = [r]
 
         system = apply_rules(start, rules, settings.iterations)
+        print("Log: ", system_to_human(system))
         length = calculate_length(system, settings.basic_length)
 
         # Create new curve object
@@ -313,6 +316,14 @@ class LindenmayerSystem(bpy.types.Operator):
             if (token.value == ']'):
                 spline, trans = stack.pop()
                 continue
+
+def system_to_human(system):
+    string = ""
+    for token in system:
+        if token.type == 'SYMBOL' or token.type == 'DIRECTION' or token.type == 'PUSH' or token.type == 'POP':
+            string += token.value
+
+    return string
 
 def apply_single_rule(start, rules):
     lsystem = []
