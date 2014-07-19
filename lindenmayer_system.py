@@ -218,6 +218,7 @@ class LindenmayerSystem(bpy.types.Operator):
         column = layout.column()
 
         # Rules
+        column.label("Rules:")
         row = column.row(align=True)
         row.prop(settings.production, "rule", icon='NONE' if settings.production.is_valid
                  else 'ERROR')
@@ -228,7 +229,7 @@ class LindenmayerSystem(bpy.types.Operator):
 
         # Settings
         column.separator()
-        column.label("Settings")
+        column.label("Settings:")
         column.prop(settings, "iterations")
         column.prop(settings, "angle")
         column.prop(settings, "bevel_depth")
