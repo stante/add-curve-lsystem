@@ -261,7 +261,6 @@ class LindenmayerSystem(bpy.types.Operator):
                 rules[l.value] = [r]
 
         system = apply_rules(start, rules, settings.iterations)
-        print("Log: ", system_to_human(system))
         length = calculate_length(system, settings.basic_length)
 
         # Create new curve object
@@ -279,7 +278,7 @@ class LindenmayerSystem(bpy.types.Operator):
         for token in system:
             if (token.type == 'SYMBOL'):
                 if (token.value == 'F'):
-                    grow(spline, trans.get_vector(), length)
+                    grow(spline, trans, length)
                     continue
 
             if (token.type == 'DIRECTION'):
@@ -366,8 +365,9 @@ def calculate_length(system, basic_length):
 
     return basic_length / cnt
         
-def grow(spline, direction, amount):
-    if len(spline.bezier_points) == 1:
+def grow(spline, movement, amount):
+    direction = movement.get_vector()
+    if movement.has_changed():
         # Add second point
         spline.bezier_points.add()
         newpoint = spline.bezier_points[-1]
@@ -425,23 +425,37 @@ def unregister():
     bpy.types.INFO_MT_curve_add.remove(menu_func)
 
 class Movement:
+
     def __init__(self, vector):
+        self._has_changed = True
         self._vector = vector
 
     def rotate(self, amount, axis):
+        self._has_changed = True
         self._vector = self._vector * Matrix.Rotation(amount, 3, axis)
 
     def yaw(self, amount):
+        self._has_changed = True
         self.rotate(amount, 'X')
 
     def pitch(self, amount):
+        self._has_changed = True
         self.rotate(amount, 'Y')
 
     def roll(self, amount):
+        self._has_changed = True
         self.rotate(amount, 'Z')
 
     def get_vector(self):
         return self._vector
+
+    def has_changed(self):
+        if self._has_changed:
+            self._has_changed = False
+            return True
+        else:
+            return False
+            
 
 if __name__ == '__main__':
     register()
