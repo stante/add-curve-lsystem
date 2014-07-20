@@ -314,6 +314,9 @@ class LindenmayerSystem(bpy.types.Operator):
                 continue
 
             if (token.type == 'POP'):
+                if len(spline.bezier_points) == 1:
+                    curve.splines.remove(spline)
+
                 spline, trans = stack.pop()
                 continue
 
@@ -364,6 +367,13 @@ def calculate_length(system, basic_length):
     return basic_length / cnt
         
 def grow(spline, direction, amount):
+    if len(spline.bezier_points) == 1:
+        # Add second point
+        spline.bezier_points.add()
+        newpoint = spline.bezier_points[-1]
+        oldpoint = spline.bezier_points[-2]
+        newpoint.co = oldpoint.co
+        
     newpoint = spline.bezier_points[-1]
     oldpoint = spline.bezier_points[-2]
     direction = direction * amount
@@ -387,10 +397,10 @@ def branch(curve, position):
     spline = new_spline(curve, position)
 
     # Add second point
-    spline.bezier_points.add()
-    newpoint = spline.bezier_points[-1]
-    oldpoint = spline.bezier_points[-2]
-    newpoint.co = oldpoint.co
+    # spline.bezier_points.add()
+    # newpoint = spline.bezier_points[-1]
+    # oldpoint = spline.bezier_points[-2]
+    # newpoint.co = oldpoint.co
     
     return spline
 
