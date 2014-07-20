@@ -269,6 +269,7 @@ class LindenmayerSystem(bpy.types.Operator):
         curve.fill_mode = 'FULL'
         curve.bevel_depth = settings.bevel_depth
         curve.bevel_resolution = settings.bevel_resolution
+        curve.resolution_u = 1
 
         obj = bpy.data.objects.new('LSystem', curve)
         bpy.context.scene.objects.link(obj)
