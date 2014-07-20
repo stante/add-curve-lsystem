@@ -307,13 +307,13 @@ class LindenmayerSystem(bpy.types.Operator):
                     trans.roll(-settings.angle)
                     continue
 
-            if (token.value == '['):
+            if (token.type == 'PUSH'):
                 stack.append((spline, copy(trans)))
 
                 spline = branch(curve, spline.bezier_points[-1].co)
                 continue
 
-            if (token.value == ']'):
+            if (token.type == 'POP'):
                 spline, trans = stack.pop()
                 continue
 
