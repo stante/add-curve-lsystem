@@ -110,9 +110,68 @@ class ProductionItem(bpy.types.PropertyGroup):
         return (p[0], p[2:])
 
 
-class OperatorSettings(bpy.types.PropertyGroup):
-    bl_idname = "lindenmayer_system.settings"
+class ProductionShowExtended(bpy.types.Operator):
+    bl_idname = "lindenmayer_system.production_show_extended"
+    bl_label = ""
 
+    index = IntProperty()
+    
+    def execute(self, context):
+        settings = context.active_operator
+        settings.productions[self.index].show_extended = not settings.productions[self.index].show_extended
+        
+        return {'FINISHED'}
+
+class ProductionMove(bpy.types.Operator):
+    bl_idname = "lindenmayer_system.production_move"
+    bl_label = ""
+
+    direction = StringProperty()
+    index = IntProperty()
+
+    def execute(self, context):
+        rules = context.active_operator.productions
+        if self.direction == 'UP' and self.index > 0:
+            rules.move(self.index, self.index - 1)
+        elif self.direction == 'DOWN' and self.index < len(rules) - 1:
+            rules.move(self.index, self.index + 1)
+
+        return {'FINISHED'}
+
+class ProductionRemove(bpy.types.Operator):
+    bl_idname = "lindenmayer_system.production_remove"
+    bl_label = ""
+
+    index = IntProperty()
+
+    def execute(self, context):
+        context.active_operator.productions.remove(self.index)
+
+        return {'FINISHED'}
+
+class ProductionAdd(bpy.types.Operator):
+    """Operator to add a new rule to the Lindenmayer System
+
+    Adds a new rule by adding a ProductionItem to the production collection
+    """
+    bl_idname = "lindenmayer_system.production_add"
+    bl_label = ""
+
+    def execute(self, context):
+        settings = context.active_operator
+
+        if settings.production.is_valid:
+            prop = settings.productions.add()
+            prop.rule = settings.production.rule
+
+        return {'FINISHED'}
+
+class LindenmayerSystem(bpy.types.Operator):
+    """Construct turtle based on active object"""
+    bl_idname = "curve.lindenmayer_system"
+    bl_label = "Create L-system"
+    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
+    
     start_symbol = StringProperty(name="Start Symbol", default="F")
     production = PointerProperty(type=ProductionItem, name="Production")
 
@@ -144,74 +203,12 @@ class OperatorSettings(bpy.types.PropertyGroup):
 
     productions = CollectionProperty(type=ProductionItem)
 
-class ProductionShowExtended(bpy.types.Operator):
-    bl_idname = "lindenmayer_system.production_show_extended"
-    bl_label = ""
-
-    index = IntProperty()
-    
-    def execute(self, context):
-        settings = context.window_manager.lindenmayer_settings
-        settings.productions[self.index].show_extended = not settings.productions[self.index].show_extended
-        
-        return {'FINISHED'}
-
-class ProductionMove(bpy.types.Operator):
-    bl_idname = "lindenmayer_system.production_move"
-    bl_label = ""
-
-    direction = StringProperty()
-    index = IntProperty()
-
-    def execute(self, context):
-        rules = context.window_manager.lindenmayer_settings.productions
-        if self.direction == 'UP' and self.index > 0:
-            rules.move(self.index, self.index - 1)
-        elif self.direction == 'DOWN' and self.index < len(rules) - 1:
-            rules.move(self.index, self.index + 1)
-
-        return {'FINISHED'}
-
-class ProductionRemove(bpy.types.Operator):
-    bl_idname = "lindenmayer_system.production_remove"
-    bl_label = ""
-
-    index = IntProperty()
-
-    def execute(self, context):
-        context.window_manager.lindenmayer_settings.productions.remove(self.index)
-
-        return {'FINISHED'}
-
-class ProductionAdd(bpy.types.Operator):
-    """Operator to add a new rule to the Lindenmayer System
-
-    Adds a new rule by adding a ProductionItem to the production collection
-    """
-    bl_idname = "lindenmayer_system.production_add"
-    bl_label = ""
-
-    def execute(self, context):
-        settings = context.window_manager.lindenmayer_settings
-
-        if settings.production.is_valid:
-            prop = settings.productions.add()
-            prop.rule = settings.production.rule
-
-        return {'FINISHED'}
-
-class LindenmayerSystem(bpy.types.Operator):
-    """Construct turtle based on active object"""
-    bl_idname = "curve.lindenmayer_system"
-    bl_label = "Create L-system"
-    bl_options = {'REGISTER', 'UNDO', 'PRESET'}
-    
     @classmethod
     def poll(cls, context):
         return True
         
     def execute(self, context):
-        self.apply_turtle(context.window_manager.lindenmayer_settings)
+        self.apply_turtle(self)
 
         return {'FINISHED'}
 
@@ -219,7 +216,7 @@ class LindenmayerSystem(bpy.types.Operator):
         return self.execute(context)
 
     def draw(self, context):
-        settings = context.window_manager.lindenmayer_settings
+        settings = context.active_operator
         layout = self.layout
         column = layout.column()
 
@@ -364,7 +361,7 @@ def calculate_length(system, basic_length):
         if token.type == 'POP':
             stack.pop()
 
-    return basic_length / cnt
+    return basic_length / cnt if cnt else 0
         
 def grow(spline, movement, amount):
     direction = movement.get_vector()
@@ -418,8 +415,6 @@ def menu_func(self, context):
 def register():
     bpy.utils.register_module(__name__)
     bpy.types.INFO_MT_curve_add.append(menu_func)
-    bpy.types.WindowManager.lindenmayer_settings = PointerProperty(type=OperatorSettings,
-                                                                   name="Operator Settings")
 
 def unregister():
     bpy.utils.unregister_module(__name__)
