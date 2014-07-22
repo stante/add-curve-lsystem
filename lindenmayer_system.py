@@ -19,7 +19,8 @@
 import bpy
 from copy import copy
 from mathutils import *
-from math import radians
+from math import radians, pi
+from random import random
 from bpy.props import StringProperty
 from bpy.props import IntProperty
 from bpy.props import FloatProperty
@@ -185,6 +186,12 @@ class LindenmayerSystem(bpy.types.Operator):
                               subtype="ANGLE",
                               unit='ROTATION',
                               default=radians(60))
+    random_angle = FloatProperty(name="Random Angle",
+                                 min=0,
+                                 max=1,
+                                 precision=3,
+                                 step=0.1,
+                                 default=0)
     
     bevel_depth = FloatProperty(name="Depth",
                                 min=0,
@@ -214,6 +221,14 @@ class LindenmayerSystem(bpy.types.Operator):
 
     def invoke(self, context, event):
         return self.execute(context)
+        
+    def get_angle(self):
+        if self.random_angle != 0:
+            var = pi * self.random_angle
+            var = var * (1 - random() * 2)
+            return self.angle + var
+        else:
+            return self.angle
 
     def draw(self, context):
         settings = context.active_operator
@@ -235,7 +250,9 @@ class LindenmayerSystem(bpy.types.Operator):
         column.label("Settings:")
         column.prop(settings, "start_symbol")
         column.prop(settings, "iterations")
-        column.prop(settings, "angle")
+        column2 = column.column(align=True)
+        column2.prop(settings, "angle")
+        column2.prop(settings, "random_angle")
         column.prop(settings, "bevel_depth")
         column.prop(settings, "bevel_resolution")
         column.prop(settings, "basic_length")
@@ -281,27 +298,27 @@ class LindenmayerSystem(bpy.types.Operator):
 
             if (token.type == 'DIRECTION'):
                 if (token.value == '+'):
-                    trans.yaw(settings.angle)
+                    trans.yaw(self.get_angle())
                     continue
                 
                 if (token.value == '-'):
-                    trans.yaw(-settings.angle)
+                    trans.yaw(-self.get_angle())
                     continue
                 
                 if (token.value == '^'):
-                    trans.pitch(settings.angle)
+                    trans.pitch(self.get_angle())
                     continue
 
                 if (token.value == '&'):
-                    trans.pitch(-settings.angle)
+                    trans.pitch(-self.get_angle())
                     continue
 
                 if (token.value == '\\'):
-                    trans.roll(settings.angle)
+                    trans.roll(self.get_angle())
                     continue
 
                 if (token.value == '/'):
-                    trans.roll(-settings.angle)
+                    trans.roll(-self.get_angle())
                     continue
 
             if (token.type == 'PUSH'):
