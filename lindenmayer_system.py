@@ -365,7 +365,7 @@ def calculate_length(system, basic_length):
         
 def grow(spline, movement, amount):
     direction = movement.get_vector()
-    if movement.has_changed():
+    if movement.has_changed() or len(spline.bezier_points) == 1:
         # Add second point
         spline.bezier_points.add()
         newpoint = spline.bezier_points[-1]
