@@ -20,7 +20,7 @@ import bpy
 from copy import copy
 from mathutils import *
 from math import radians, pi
-from random import random
+from random import random, seed
 from collections import namedtuple
 from bpy.props import StringProperty
 from bpy.props import IntProperty
@@ -190,6 +190,9 @@ class LindenmayerSystem(bpy.types.Operator):
                               subtype="ANGLE",
                               unit='ROTATION',
                               default=radians(60))
+    seed = IntProperty(name="Seed",
+                       default=0)
+    
     random_angle = FloatProperty(name="Random Angle",
                                  min=0,
                                  max=1,
@@ -254,6 +257,7 @@ class LindenmayerSystem(bpy.types.Operator):
         column.label("Settings:")
         column.prop(settings, "start_symbol")
         column.prop(settings, "iterations")
+        column.prop(settings, "seed")
         column2 = column.column(align=True)
         column2.prop(settings, "angle")
         column2.prop(settings, "random_angle")
@@ -280,7 +284,7 @@ class LindenmayerSystem(bpy.types.Operator):
             else:
                 rules[l.value] = [new_rule]
 
-        system = apply_rules(start, rules, settings.iterations)
+        system = apply_rules(start, rules, settings.iterations, self.seed)
         length = calculate_length(system, settings.basic_length)
 
         # Create new curve object
@@ -373,9 +377,9 @@ def apply_single_rule(start, rules):
 
     return lsystem
     
-def apply_rules(start, rules, times):
+def apply_rules(start, rules, times, rseed):
     lsystem = start
-
+    seed(rseed)
     for i in range(times):
         lsystem = apply_single_rule(lsystem, rules)
 
