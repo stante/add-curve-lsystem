@@ -21,6 +21,7 @@ from copy import copy
 from mathutils import *
 from math import radians, pi
 from random import random
+from collections import namedtuple
 from bpy.props import StringProperty
 from bpy.props import IntProperty
 from bpy.props import FloatProperty
@@ -39,6 +40,9 @@ bl_info = {
     "category" : "Add Curve",
     "warning"  : "Under development"
 }
+
+Rule = namedtuple('Rule', ['left', 'right', 'probability'])
+
 
 def draw_rule(layout, rule, index):
     """Draw a Lindenmayer rule on the layout
@@ -269,10 +273,12 @@ class LindenmayerSystem(bpy.types.Operator):
         rules = {}
         for production in settings.productions:
             l, r = production.get_parsed()
+            new_rule = Rule(l, r, production.probability)
+
             if l.value in rules:
-                rules[l.value].append(r)
+                rules[l.value].append(new_rule)
             else:
-                rules[l.value] = [r]
+                rules[l.value] = [new_rule]
 
         system = apply_rules(start, rules, settings.iterations)
         length = calculate_length(system, settings.basic_length)
@@ -347,7 +353,19 @@ def apply_single_rule(start, rules):
     for token in start:
         if token.type == 'SYMBOL':
             if token.value in rules:
-                lsystem.extend(rules[token.value][0])
+                rewrite_rule = rules[token.value]
+
+                if len(rewrite_rule) > 1:
+                    # Rules with probability
+                    rnd = random()
+                    probability = 0
+                    for r in rewrite_rule:
+                        probability += r.probability
+                        if rnd <= probability:
+                            lsystem.extend(r.right)
+                            break
+                else:
+                    lsystem.extend(rewrite_rule[0].right)
             else:
                 lsystem.append(token)
         else:
