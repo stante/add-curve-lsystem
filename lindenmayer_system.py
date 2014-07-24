@@ -190,8 +190,12 @@ class LindenmayerSystem(bpy.types.Operator):
                               subtype="ANGLE",
                               unit='ROTATION',
                               default=radians(60))
-    seed = IntProperty(name="Seed",
-                       default=0)
+    
+    rule_seed = IntProperty(name="Rule Seed",
+                            default=0)
+    
+    angle_seed = IntProperty(name="Angle Seed",
+                             default=0)
     
     random_angle = FloatProperty(name="Random Angle",
                                  min=0,
@@ -257,10 +261,11 @@ class LindenmayerSystem(bpy.types.Operator):
         column.label("Settings:")
         column.prop(settings, "start_symbol")
         column.prop(settings, "iterations")
-        column.prop(settings, "seed")
+        column.prop(settings, "rule_seed")
         column2 = column.column(align=True)
         column2.prop(settings, "angle")
         column2.prop(settings, "random_angle")
+        column2.prop(settings, "angle_seed")
         column.prop(settings, "bevel_depth")
         column.prop(settings, "bevel_resolution")
         column.prop(settings, "basic_length")
@@ -284,7 +289,7 @@ class LindenmayerSystem(bpy.types.Operator):
             else:
                 rules[l.value] = [new_rule]
 
-        system = apply_rules(start, rules, settings.iterations, self.seed)
+        system = apply_rules(start, rules, settings.iterations, self.rule_seed)
         length = calculate_length(system, settings.basic_length)
 
         # Create new curve object
@@ -299,6 +304,9 @@ class LindenmayerSystem(bpy.types.Operator):
         bpy.context.scene.objects.link(obj)
         
         spline = branch(curve, Vector((0, 0, 0)))
+
+        # Initialize seed for angle variations
+        seed(self.angle_seed)
 
         for token in system:
             if (token.type == 'SYMBOL'):
