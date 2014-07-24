@@ -301,6 +301,7 @@ class LindenmayerSystem(bpy.types.Operator):
         curve.resolution_u = 1
 
         obj = bpy.data.objects.new('LSystem', curve)
+        obj.location = bpy.context.scene.cursor_location
         bpy.context.scene.objects.link(obj)
         
         spline = branch(curve, Vector((0, 0, 0)))
