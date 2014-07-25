@@ -259,6 +259,12 @@ class LindenmayerSystem(bpy.types.Operator):
         row.prop(settings.production, "rule", icon='NONE' if settings.production.is_valid
                  else 'ERROR')
         row.operator("lindenmayer_system.production_add", icon='ZOOMIN')
+        
+        column.separator()
+        row = column.row()
+        row.prop(settings, "rule_seed")
+        row.prop(settings, "iterations")
+        column.separator()
 
         for idx, prop in enumerate(settings.productions):
             draw_rule(column, prop, idx)
@@ -267,9 +273,6 @@ class LindenmayerSystem(bpy.types.Operator):
         column.separator()
         column.label("Settings:")
         column.prop(settings, "start_symbol")
-        row = column.row()
-        row.prop(settings, "rule_seed")
-        row.prop(settings, "iterations")
         column2 = column.column(align=True)
         column2.prop(settings, "angle")
         column2.prop(settings, "random_angle")
