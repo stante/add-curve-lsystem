@@ -187,9 +187,9 @@ class LindenmayerSystem(bpy.types.Operator):
                              description="Iterations - number of rule applications")
     
     angle = FloatProperty(name="Angle", 
-                              subtype="ANGLE",
-                              unit='ROTATION',
-                              default=radians(60))
+                          subtype="ANGLE",
+                          unit='ROTATION',
+                          default=radians(60))
     
     rule_seed = IntProperty(name="Rule Seed",
                             default=0)
