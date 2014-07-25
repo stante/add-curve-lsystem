@@ -235,7 +235,7 @@ class LindenmayerSystem(bpy.types.Operator):
         
     def get_angle(self):
         if self.random_angle != 0:
-            var = pi * self.random_angle
+            var = pi / 4 * self.random_angle
             var = var * (1 - random() * 2)
             return self.angle + var
         else:
