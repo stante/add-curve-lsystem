@@ -184,40 +184,47 @@ class LindenmayerSystem(bpy.types.Operator):
                              min=0,
                              max=8,
                              default=0,
-                             description="Iterations - number of rule applications")
+                             description="Number of iterations for rule application")
     
     angle = FloatProperty(name="Angle", 
                           subtype="ANGLE",
                           unit='ROTATION',
-                          default=radians(60))
+                          default=radians(60),
+                          description="Angle for each branching")
     
     rule_seed = IntProperty(name="Rule Seed",
-                            default=0)
+                            default=0,
+                            description="Seed for rule random number generator")
     
     angle_seed = IntProperty(name="Angle Seed",
-                             default=0)
+                             default=0,
+                             description="Seed for angle random number generator")
     
     random_angle = FloatProperty(name="Random Angle",
                                  min=0,
                                  max=1,
                                  precision=3,
                                  step=0.1,
-                                 default=0)
+                                 default=0,
+                                 description="Variation for branching angle")
     
     bevel_depth = FloatProperty(name="Depth",
                                 min=0,
                                 precision=3,
                                 step=0.1,
-                                default=0)
+                                default=0,
+                                description="Bevel depth")
 
     bevel_resolution = IntProperty(name="Resolution",
                                    min=0,
                                    max=32,
-                                   default=0)
+                                   default=0,
+                                   description="Resolution for the bevel depth")
     
     basic_length = FloatProperty(name="Length",
                                  min=0, 
-                                 default=2)
+                                 default=2,
+                                 description="Basic length of generated plant")
 
     productions = CollectionProperty(type=ProductionItem)
 
