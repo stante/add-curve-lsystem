@@ -453,12 +453,6 @@ def branch(curve, position):
     # New spline (automatically creates a bezier point)
     spline = new_spline(curve, position)
 
-    # Add second point
-    # spline.bezier_points.add()
-    # newpoint = spline.bezier_points[-1]
-    # oldpoint = spline.bezier_points[-2]
-    # newpoint.co = oldpoint.co
-    
     return spline
 
 def new_spline(curve, position):
