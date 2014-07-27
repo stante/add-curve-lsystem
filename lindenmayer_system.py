@@ -485,11 +485,11 @@ class Movement:
 
     def yaw(self, amount):
         self._has_changed = True
-        self.rotate(amount, 'X')
+        self.rotate(amount, 'Y')
 
     def pitch(self, amount):
         self._has_changed = True
-        self.rotate(amount, 'Y')
+        self.rotate(amount, 'X')
 
     def roll(self, amount):
         self._has_changed = True
