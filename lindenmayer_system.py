@@ -43,7 +43,6 @@ bl_info = {
 
 Rule = namedtuple('Rule', ['left', 'right', 'probability'])
 
-
 def draw_rule(layout, rule, index):
     """Draw a Lindenmayer rule on the layout
     
@@ -283,7 +282,7 @@ class LindenmayerSystem(bpy.types.Operator):
 
     def apply_turtle(self, settings):
         direction = Vector((0, 0, 1))
-        trans = Movement(direction)
+        turtle = TurtleMovement(direction)
         stack = []
 
         # Create start token
@@ -323,36 +322,36 @@ class LindenmayerSystem(bpy.types.Operator):
         for token in system:
             if (token.type == 'SYMBOL'):
                 if (token.value == 'F'):
-                    grow(spline, trans, length)
+                    turtle.forward(spline, length)
                     continue
 
             if (token.type == 'DIRECTION'):
                 if (token.value == '+'):
-                    trans.yaw(self.get_angle())
+                    turtle.yaw(self.get_angle())
                     continue
                 
                 if (token.value == '-'):
-                    trans.yaw(-self.get_angle())
+                    turtle.yaw(-self.get_angle())
                     continue
                 
                 if (token.value == '^'):
-                    trans.pitch(self.get_angle())
+                    turtle.pitch(self.get_angle())
                     continue
 
                 if (token.value == '&'):
-                    trans.pitch(-self.get_angle())
+                    turtle.pitch(-self.get_angle())
                     continue
 
                 if (token.value == '\\'):
-                    trans.roll(self.get_angle())
+                    turtle.roll(self.get_angle())
                     continue
 
                 if (token.value == '/'):
-                    trans.roll(-self.get_angle())
+                    turtle.roll(-self.get_angle())
                     continue
 
             if (token.type == 'PUSH'):
-                stack.append((spline, copy(trans)))
+                stack.append((spline, copy(turtle)))
 
                 spline = branch(curve, spline.bezier_points[-1].co)
                 continue
@@ -361,7 +360,7 @@ class LindenmayerSystem(bpy.types.Operator):
                 if len(spline.bezier_points) == 1:
                     curve.splines.remove(spline)
 
-                spline, trans = stack.pop()
+                spline, turtle = stack.pop()
                 continue
 
 def system_to_human(system):
@@ -422,25 +421,6 @@ def calculate_length(system, basic_length):
 
     return basic_length / cnt if cnt else 0
         
-def grow(spline, movement, amount):
-    direction = movement.get_vector()
-    if movement.has_changed() or len(spline.bezier_points) == 1:
-        # Add second point
-        spline.bezier_points.add()
-        newpoint = spline.bezier_points[-1]
-        oldpoint = spline.bezier_points[-2]
-        newpoint.co = oldpoint.co
-        
-    newpoint = spline.bezier_points[-1]
-    oldpoint = spline.bezier_points[-2]
-    direction = direction * amount
-
-    newpoint.co = newpoint.co + direction
-
-    oldpoint.handle_left = oldpoint.co - direction
-    oldpoint.handle_right = oldpoint.co + direction
-    newpoint.handle_left = newpoint.co - direction
-    newpoint.handle_right = newpoint.co + direction
     
 def branch(curve, position):
     """Creates a branch in curve at position
@@ -473,16 +453,37 @@ def unregister():
     bpy.utils.unregister_module(__name__)
     bpy.types.INFO_MT_curve_add.remove(menu_func)
 
-class Movement:
+class TurtleMovement:
 
     def __init__(self, vector):
         self._has_changed = True
         self._vector = vector
+        
+    def forward(self, spline, amount):
+        direction = self.get_vector()
 
+        if self.has_changed() or len(spline.bezier_points) == 1:
+            # Add second point
+            spline.bezier_points.add()
+            newpoint = spline.bezier_points[-1]
+            oldpoint = spline.bezier_points[-2]
+            newpoint.co = oldpoint.co
+        
+        newpoint = spline.bezier_points[-1]
+        oldpoint = spline.bezier_points[-2]
+        direction = direction * amount
+        
+        newpoint.co = newpoint.co + direction
+            
+        oldpoint.handle_left = oldpoint.co - direction
+        oldpoint.handle_right = oldpoint.co + direction
+        newpoint.handle_left = newpoint.co - direction
+        newpoint.handle_right = newpoint.co + direction
+            
     def rotate(self, amount, axis):
         self._has_changed = True
         self._vector = self._vector * Matrix.Rotation(amount, 3, axis)
-
+            
     def yaw(self, amount):
         self._has_changed = True
         self.rotate(amount, 'Y')
@@ -505,6 +506,5 @@ class Movement:
         else:
             return False
             
-
 if __name__ == '__main__':
     register()
