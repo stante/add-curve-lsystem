@@ -302,19 +302,10 @@ class LindenmayerSystem(bpy.types.Operator):
         system = apply_rules(start, rules, settings.iterations, self.rule_seed)
         length = calculate_length(system, settings.basic_length)
 
-        # Create new curve object
-        curve = bpy.data.curves.new('LSystem', 'CURVE')
-        curve.dimensions = '3D'
-        curve.fill_mode = 'FULL'
+        # Get curve
+        curve = turtle.get_curve()
         curve.bevel_depth = settings.bevel_depth
         curve.bevel_resolution = settings.bevel_resolution
-        curve.resolution_u = 1
-
-        obj = bpy.data.objects.new('LSystem', curve)
-        obj.location = bpy.context.scene.cursor_location
-        bpy.context.scene.objects.link(obj)
-        
-        spline = branch(curve, Vector((0, 0, 0)))
 
         # Initialize seed for angle variations
         seed(self.angle_seed)
@@ -322,7 +313,7 @@ class LindenmayerSystem(bpy.types.Operator):
         for token in system:
             if (token.type == 'SYMBOL'):
                 if (token.value == 'F'):
-                    turtle.forward(spline, length)
+                    turtle.forward(length)
                     continue
 
             if (token.type == 'DIRECTION'):
@@ -351,16 +342,13 @@ class LindenmayerSystem(bpy.types.Operator):
                     continue
 
             if (token.type == 'PUSH'):
-                stack.append((spline, copy(turtle)))
-
-                spline = branch(curve, spline.bezier_points[-1].co)
+                stack.append(copy(turtle))
+                turtle.branch()
                 continue
 
             if (token.type == 'POP'):
-                if len(spline.bezier_points) == 1:
-                    curve.splines.remove(spline)
-
-                spline, turtle = stack.pop()
+                turtle.branch_end()
+                turtle = stack.pop()
                 continue
 
 def system_to_human(system):
@@ -422,19 +410,6 @@ def calculate_length(system, basic_length):
     return basic_length / cnt if cnt else 0
         
     
-def branch(curve, position):
-    """Creates a branch in curve at position
-    
-    Arguments:
-    curve    -- Blender curve
-    position -- Starting point of the new branch
-    """
-
-    # New spline (automatically creates a bezier point)
-    spline = new_spline(curve, position)
-
-    return spline
-
 def new_spline(curve, position):
     curve.splines.new('BEZIER')
     spline = curve.splines[-1]
@@ -458,19 +433,31 @@ class TurtleMovement:
     def __init__(self, vector):
         self._has_changed = True
         self._vector = vector
+
+        # Create new curve object
+        self._curve = bpy.data.curves.new('LSystem', 'CURVE')
+        self._curve.dimensions = '3D'
+        self._curve.fill_mode = 'FULL'
+        self._curve.resolution_u = 1
+
+        self._object = bpy.data.objects.new('LSystem', self._curve)
+        self._object.location = bpy.context.scene.cursor_location
+        bpy.context.scene.objects.link(self._object)
         
-    def forward(self, spline, amount):
+        self.branch_at(Vector((0, 0, 0)))
+        
+    def forward(self, amount):
         direction = self.get_vector()
 
-        if self.has_changed() or len(spline.bezier_points) == 1:
+        if self.has_changed() or len(self._spline.bezier_points) == 1:
             # Add second point
-            spline.bezier_points.add()
-            newpoint = spline.bezier_points[-1]
-            oldpoint = spline.bezier_points[-2]
+            self._spline.bezier_points.add()
+            newpoint = self._spline.bezier_points[-1]
+            oldpoint = self._spline.bezier_points[-2]
             newpoint.co = oldpoint.co
         
-        newpoint = spline.bezier_points[-1]
-        oldpoint = spline.bezier_points[-2]
+        newpoint = self._spline.bezier_points[-1]
+        oldpoint = self._spline.bezier_points[-2]
         direction = direction * amount
         
         newpoint.co = newpoint.co + direction
@@ -479,7 +466,34 @@ class TurtleMovement:
         oldpoint.handle_right = oldpoint.co + direction
         newpoint.handle_left = newpoint.co - direction
         newpoint.handle_right = newpoint.co + direction
+        
+    def branch_at(self, position):
+        """Creates a branch in curve at position
+        
+        Arguments:
+        curve    -- Blender curve
+        position -- Starting point of the new branch
+        """
+    
+        # New spline (automatically creates a bezier point)
+        self._spline = new_spline(self._curve, position)
             
+    def branch(self):
+        self.branch_at(self._spline.bezier_points[-1].co)
+        
+
+    def branch_end(self):
+        if len(self._spline.bezier_points) == 1:
+            self.remove_spline()
+        
+    # Just temporary
+    def remove_spline(self):
+        self._curve.splines.remove(self._spline)
+
+    # Just temporary
+    def get_curve(self):
+        return self._curve
+
     def rotate(self, amount, axis):
         self._has_changed = True
         self._vector = self._vector * Matrix.Rotation(amount, 3, axis)
