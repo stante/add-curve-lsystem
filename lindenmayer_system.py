@@ -448,25 +448,23 @@ class TurtleMovement:
         
     def forward(self, amount):
         direction = self.get_vector()
+        direction = direction * amount
+        new_position = self._spline.bezier_points[-1].co + direction
 
         if self.has_changed() or len(self._spline.bezier_points) == 1:
             # Add second point
             self._spline.bezier_points.add()
-            newpoint = self._spline.bezier_points[-1]
-            oldpoint = self._spline.bezier_points[-2]
-            newpoint.co = oldpoint.co
-        
-        newpoint = self._spline.bezier_points[-1]
-        oldpoint = self._spline.bezier_points[-2]
-        direction = direction * amount
-        
-        newpoint.co = newpoint.co + direction
+
+        p1 = self._spline.bezier_points[-1]
+        p2 = self._spline.bezier_points[-2]
+
+        p1.co = new_position
             
-        oldpoint.handle_left = oldpoint.co - direction
-        oldpoint.handle_right = oldpoint.co + direction
-        newpoint.handle_left = newpoint.co - direction
-        newpoint.handle_right = newpoint.co + direction
-        
+        p2.handle_left = p2.co - direction
+        p2.handle_right = p2.co + direction
+        p1.handle_left = p1.co - direction
+        p1.handle_right = p1.co + direction
+
     def branch_at(self, position):
         """Creates a branch in curve at position
         
