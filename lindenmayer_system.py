@@ -282,7 +282,6 @@ class LindenmayerSystem(bpy.types.Operator):
 
     def apply_turtle(self, settings):
         direction = Vector((0, 0, 1))
-        turtle = TurtleMovement(direction)
         stack = []
 
         # Create start token
@@ -301,6 +300,8 @@ class LindenmayerSystem(bpy.types.Operator):
 
         system = apply_rules(start, rules, settings.iterations, self.rule_seed)
         length = calculate_length(system, settings.basic_length)
+
+        turtle = TurtleMovement(direction, length)
 
         # Get curve
         curve = turtle.get_curve()
@@ -430,9 +431,10 @@ def unregister():
 
 class TurtleMovement:
 
-    def __init__(self, vector):
+    def __init__(self, vector, length):
         self._has_changed = True
         self._vector = vector
+        self._basic_length = length
 
         # Create new curve object
         self._curve = bpy.data.curves.new('LSystem', 'CURVE')
