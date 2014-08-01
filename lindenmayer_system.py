@@ -433,7 +433,7 @@ class TurtleMovement:
 
     def __init__(self, vector, length):
         self._has_changed = True
-        self._vector = vector
+        self._facing_direction = vector
         self._basic_length = length
 
         # Create new curve object
@@ -449,7 +449,7 @@ class TurtleMovement:
         self.branch_at(Vector((0, 0, 0)))
         
     def forward(self, amount):
-        direction = self.get_vector()
+        direction = self._facing_direction
         direction = direction * self._basic_length
         new_position = self._spline.bezier_points[-1].co + direction
 
@@ -481,7 +481,7 @@ class TurtleMovement:
         self._spline = new_spline(self._curve, position)
         
         p = self._spline.bezier_points[-1]
-        p.handle_left = p.co - self.get_vector() * self._basic_length / 5
+        p.handle_left = p.co - self._facing_direction * self._basic_length / 5
             
     def branch(self):
         self.branch_at(self._spline.bezier_points[-1].co)
@@ -501,7 +501,7 @@ class TurtleMovement:
 
     def rotate(self, amount, axis):
         self._has_changed = True
-        self._vector = self._vector * Matrix.Rotation(amount, 3, axis)
+        self._facing_direction = self._facing_direction * Matrix.Rotation(amount, 3, axis)
             
     def yaw(self, amount):
         self._has_changed = True
@@ -514,9 +514,6 @@ class TurtleMovement:
     def roll(self, amount):
         self._has_changed = True
         self.rotate(amount, 'Z')
-
-    def get_vector(self):
-        return self._vector
 
     def has_changed(self):
         if self._has_changed:
