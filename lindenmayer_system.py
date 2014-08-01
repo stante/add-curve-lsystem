@@ -462,11 +462,11 @@ class TurtleMovement:
 
         p1.co = new_position
             
-        p1.handle_left = p1.co - direction
+        p1.handle_left = p1.co - direction / 5
         handle_direction = (p2.co - p1.co ).normalized()
-        handle_direction = handle_direction * self._basic_length
-        p1.handle_right = p1.co + handle_direction
-        p2.handle_right = p2.co + direction
+        handle_direction = handle_direction * self._basic_length / 5
+        p1.handle_right = p1.co - handle_direction
+        p2.handle_right = p2.co + direction / 5
 
     def branch_at(self, position):
         """Creates a branch in curve at position
@@ -480,7 +480,7 @@ class TurtleMovement:
         self._spline = new_spline(self._curve, position)
         
         p = self._spline.bezier_points[-1]
-        p.handle_left = p.co - self.get_vector() * self._basic_length
+        p.handle_left = p.co - self.get_vector() * self._basic_length / 5
             
     def branch(self):
         self.branch_at(self._spline.bezier_points[-1].co)
@@ -489,7 +489,7 @@ class TurtleMovement:
     def branch_end(self):
         if len(self._spline.bezier_points) == 1:
             self.remove_spline()
-        
+
     # Just temporary
     def remove_spline(self):
         self._curve.splines.remove(self._spline)
